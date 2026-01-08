@@ -8,24 +8,32 @@ const pool = new Pool({ connectionString: process.env.DATABASE_URL })
 const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
-const email = 'admin@example.com'
-const password = 'admin123'
-const name = 'Admin User'
-const role = 'ADMIN'
-
 async function main() {
-  const passwordHash = await bcrypt.hash(password, 10)
+  const passwordHash = await bcrypt.hash('admin123', 10)
   const admin = await prisma.user.upsert({
-    where: { email },
+    where: { email: 'admin@ngopidi.cafe' },
     update: {},
     create: {
-      email,
-      name,
+      email: 'admin@ngopidi.cafe',
+      name: 'Admin User',
       password: passwordHash,
-      role,
+      role: 'ADMIN',
     },
   })
   console.log({ admin })
+
+  const passwordHash2 = await bcrypt.hash('user123', 10)
+  const user = await prisma.user.upsert({
+    where: { email: 'user@ngopidi.cafe' },
+    update: {},
+    create: {
+      email: 'user@ngopidi.cafe',
+      name: 'Regular User',
+      password: passwordHash2,
+      role: 'USER',
+    },
+  })
+  console.log({ user })
 
   const coffeeShops = [
     {
