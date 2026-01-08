@@ -29,3 +29,5 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 ---
 
 Built with ❤️ for the coffee community.
+
+*This project was built with assistance from AI.*
