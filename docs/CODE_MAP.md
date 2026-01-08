@@ -4,7 +4,7 @@ This document provides a high-level overview of the project's directory structur
 
 ## Directory Structure
 
-```text
+```plain
 ngopidi/
 ├── app/                  # Next.js App Router (pages, layout, actions, api)
 │   ├── actions/          # Server Actions for mutations
