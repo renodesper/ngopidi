@@ -14,8 +14,8 @@ import { useRouter } from "next/navigation"
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   address: z.string().min(5, "Address must be at least 5 characters"),
-  wifiSpeed: z.coerce.number().optional(),
-  priceLevel: z.coerce.number().min(1).max(5).optional(),
+  wifiSpeed: z.number().optional(),
+  priceLevel: z.number().min(1).max(5).optional(),
   latitude: z.number(),
   longitude: z.number(),
 })
@@ -101,11 +101,11 @@ export default function SubmitPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Wifi Speed (Mbps)</Label>
-                <Input type="number" {...register("wifiSpeed")} placeholder="e.g. 50" />
+                <Input type="number" {...register("wifiSpeed", { valueAsNumber: true })} placeholder="e.g. 50" />
               </div>
               <div className="space-y-2">
                 <Label>Price Level (1-5)</Label>
-                <Input type="number" min="1" max="5" {...register("priceLevel")} placeholder="1" />
+                <Input type="number" min="1" max="5" {...register("priceLevel", { valueAsNumber: true })} placeholder="1" />
               </div>
             </div>
 
@@ -119,8 +119,8 @@ export default function SubmitPage() {
                    {lat !== 0 ? `${lat.toFixed(4)}, ${lng.toFixed(4)}` : "No location set"}
                  </div>
               </div>
-              <Input type="hidden" {...register("latitude")} />
-              <Input type="hidden" {...register("longitude")} />
+              <Input type="hidden" {...register("latitude", { valueAsNumber: true })} />
+              <Input type="hidden" {...register("longitude", { valueAsNumber: true })} />
               {(errors.latitude || errors.longitude) && <p className="text-red-500 text-sm">Location is required</p>}
             </div>
 
