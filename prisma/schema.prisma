@@ -1,0 +1,237 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [postgis]
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(USER)
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ===========================
+// ENUMS
+// ===========================
+
+enum WifiStability {
+  poor
+  average
+  good
+  excellent
+}
+
+enum WifiPolicy {
+  free
+  purchase_required
+  time_limited
+}
+
+enum OutletDensity {
+  few
+  moderate
+  many
+}
+
+enum SeatingType {
+  single_table
+  communal_table
+  bar_seating
+  sofa
+}
+
+enum TableSize {
+  small
+  medium
+  large
+}
+
+enum NoiseLevel {
+  quiet
+  moderate
+  noisy
+}
+
+enum MusicVolume {
+  low
+  medium
+  loud
+}
+
+enum CrowdLevel {
+  empty
+  normal
+  crowded
+}
+
+enum StayPolicy {
+  no_limit
+  soft_limit
+  explicit_limit
+}
+
+enum TemperatureComfort {
+  cold
+  comfortable
+  warm
+}
+
+enum SmokingArea {
+  none
+  separate
+  indoor
+}
+
+enum CommonVisitor {
+  students
+  remote_workers
+  meetings
+  casual_visitors
+}
+
+enum PlaceStatus {
+  PENDING
+  SUBMITTED
+  UNVERIFIED
+  VERIFIED_ADMIN
+  VERIFIED_USER
+  REJECTED
+}
+
+model Place {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  address     String
+
+  // Spatial data
+  latitude  Float
+  longitude Float
+  geo       Unsupported("geography(Point,4326)")?
+
+  // Pricing
+  priceLevel        Int? // 1–5
+  averageDrinkPrice Int? // in local currency (e.g. IDR)
+  minimumSpend      Int?
+
+  // Connectivity
+  wifiAvailable Boolean        @default(false)
+  wifiSpeed     Int? // Mbps
+  wifiStability WifiStability?
+  wifiPolicy    WifiPolicy?
+
+  // Power & seating
+  powerOutletsAvailable Boolean        @default(false)
+  powerOutletDensity    OutletDensity?
+  tableSize             TableSize?
+  seatingTypes          SeatingType[]
+
+  // Environment
+  noiseLevel  NoiseLevel?
+  musicVolume MusicVolume?
+  crowdLevel  CrowdLevel?
+
+  // Work suitability
+  laptopFriendly    Boolean?
+  stayPolicy        StayPolicy?
+  meetingFriendly   Boolean?
+  callFriendly      Boolean?
+  workFriendlyScore Float? // 1.0 – 5.0
+
+  // Facilities
+  airConditioning     Boolean?
+  temperatureComfort  TemperatureComfort?
+  restroomAvailable   Boolean?
+  prayerRoomAvailable Boolean            @default(false)
+  smokingArea         SmokingArea?
+  parkingAvailable    Boolean?
+
+  // Meta
+  openingHours   String? // keep flexible (JSON/string)
+  busyHours      String? // e.g. JSON time ranges
+  commonVisitors CommonVisitor[]
+
+  status PlaceStatus @default(PENDING)
+
+  images PlaceImage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([laptopFriendly])
+  @@index([latitude, longitude])
+  @@index([wifiAvailable, powerOutletsAvailable])
+  @@index([noiseLevel, workFriendlyScore])
+  @@map("places")
+}
+
+model PlaceImage {
+  id      String @id @default(uuid())
+  url     String
+  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  placeId String
+
+  createdAt DateTime @default(now())
+  
+  @@index([placeId])
+  @@map("place_images")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
