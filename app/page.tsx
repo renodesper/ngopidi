@@ -20,7 +20,7 @@ export default function Home() {
         <div className="glass-card p-4 flex items-center justify-between gap-4">
           <div className="flex flex-col">
             <h1 className="text-xl font-bold tracking-tight">Ngopi Yuk!</h1>
-            <p className="text-xs text-muted-foreground">Find your perfect study spot</p>
+            <p className="text-xs text-muted-foreground">Find your perfect working spot</p>
           </div>
           <div className="h-8 w-[1px] bg-border/50 mx-2" />
           <nav className="flex gap-1">
