@@ -1,0 +1,38 @@
+name: ☕ Coffee Shop Submission
+description: Submit a new coffee shop to be added to the map
+labels: ["submission", "pending"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for contributing to the coffee community! Please provide the details of the shop you'd like to add.
+  - type: input
+    id: shop-name
+    attributes:
+      label: Coffee Shop Name
+      placeholder: e.g. Tanamera Coffee
+    validations:
+      required: true
+  - type: input
+    id: address
+    attributes:
+      label: Address/Location
+      placeholder: Full address or Google Maps link
+    validations:
+      required: true
+  - type: checkboxes
+    id: amenities
+    attributes:
+      label: Amenities
+      options:
+        - label: WiFi Available
+        - label: Power Outlets
+        - label: Outdoor Seating
+        - label: Smoking Area
+        - label: Parking
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional Notes
+      description: Tell us more about the vibe, coffee quality, or work-friendliness.
+      placeholder: Great beans, plenty of tables, quiet music...
