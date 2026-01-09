@@ -2,6 +2,13 @@
 
 Ngopidi is a modern web application designed for coffee enthusiasts to find, review, and submit various coffee shop locations. It provides an interactive map interface with rich details about each coffee shop's amenities, pricing, and suitability for work.
 
+## 📝 Roadmap
+
+Future plans and features for the project can be found in [**Roadmap**](./docs/ROADMAP.md).
+
+- 📚 [**Projects**](https://github.com/renodesper/ngopidi/projects): List of project milestones and tasks.
+- 📖 [**Issues**](https://github.com/renodesper/ngopidi/issues): List of project issues and bugs.
+
 ## 🚀 Getting Started
 
 To get the project up and running on your local machine, please refer to the following documentation:
