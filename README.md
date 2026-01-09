@@ -22,6 +22,7 @@ For developers interested in contributing or understanding the internals of the 
 
 - 🗺️ [**Code Map**](./docs/CODE_MAP.md): An overview of the project's architecture and folder structure.
 - 📘 [**Development Guide**](./docs/DEVELOPMENT_GUIDE.md): Coding standards, tech stack details, and common workflows.
+- 📝 [**Roadmap**](./docs/ROADMAP.md): Future plans and features for the project.
 
 ## 🧰 Tech Stack
 
