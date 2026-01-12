@@ -63,14 +63,14 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                                 <Badge variant={place.status === "VERIFIED_ADMIN" ? "default" : "secondary"} className="rounded-full">
                                     {place.status}
                                 </Badge>
-                                {place.priceLevel > 0 && (
+                                {place.price_level > 0 && (
                                     <Badge variant="outline" className="rounded-full">
-                                        {"$".repeat(place.priceLevel)}
+                                        {"$".repeat(place.price_level)}
                                     </Badge>
                                 )}
-                                {place.workFriendlyScore && (
+                                {place.work_friendly_score && (
                                     <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-none rounded-full">
-                                        Score: {place.workFriendlyScore}/5
+                                        Score: {place.work_friendly_score}/5
                                     </Badge>
                                 )}
                             </div>
@@ -94,25 +94,25 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                         <StatCard
                             icon={Wifi}
                             label="WiFi Speed"
-                            value={`${place.wifiSpeed || 0} Mbps`}
-                            subValue={place.wifiStability ? `Stability: ${place.wifiStability}` : null}
+                            value={`${place.wifi_speed || 0} Mbps`}
+                            subValue={place.wifi_stability ? `Stability: ${place.wifi_stability}` : null}
                         />
                         <StatCard
                             icon={Zap}
                             label="Power Outlets"
-                            value={place.powerOutletsAvailable ? "Available" : "Limited"}
-                            subValue={place.powerOutletDensity ? `Density: ${place.powerOutletDensity}` : null}
+                            value={place.power_outlets_available ? "Available" : "Limited"}
+                            subValue={place.power_outlet_density ? `Density: ${place.power_outlet_density}` : null}
                         />
                         <StatCard
                             icon={Users}
                             label="Crowd Level"
-                            value={place.crowdLevel || "Normal"}
+                            value={place.crowd_level || "Normal"}
                             subValue="Real-time estimate"
                         />
                         <StatCard
                             icon={Clock}
                             label="Opening Hours"
-                            value={place.openingHours || "Check Maps"}
+                            value={place.opening_hours || "Check Maps"}
                             subValue="Open Now"
                         />
                     </div>
@@ -128,21 +128,21 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                                         <Laptop className="w-4 h-4 text-primary" />
                                         Laptop Friendly
                                     </div>
-                                    {place.laptopFriendly ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertCircle className="w-4 h-4 text-muted-foreground" />}
+                                    {place.laptop_friendly ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertCircle className="w-4 h-4 text-muted-foreground" />}
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 text-sm">
                                         <MessageSquare className="w-4 h-4 text-primary" />
                                         Meeting Friendly
                                     </div>
-                                    {place.meetingFriendly ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertCircle className="w-4 h-4 text-muted-foreground" />}
+                                    {place.meeting_friendly ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertCircle className="w-4 h-4 text-muted-foreground" />}
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 text-sm">
                                         <Phone className="w-4 h-4 text-primary" />
                                         Call Friendly
                                     </div>
-                                    {place.callFriendly ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertCircle className="w-4 h-4 text-muted-foreground" />}
+                                    {place.call_friendly ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertCircle className="w-4 h-4 text-muted-foreground" />}
                                 </div>
                             </div>
                         </div>
@@ -153,15 +153,15 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Noise Level</span>
-                                    <span className="font-medium">{place.noiseLevel || "Moderate"}</span>
+                                    <span className="font-medium">{place.noise_level || "Moderate"}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Music Volume</span>
-                                    <span className="font-medium">{place.musicVolume || "Low"}</span>
+                                    <span className="font-medium">{place.music_volume || "Low"}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Stay Policy</span>
-                                    <span className="font-medium capitalize">{place.stayPolicy?.replace('_', ' ') || "No Limit"}</span>
+                                    <span className="font-medium capitalize">{place.stay_policy?.replace('_', ' ') || "No Limit"}</span>
                                 </div>
                             </div>
                         </div>
@@ -170,11 +170,11 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                         <div className="space-y-4">
                             <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60 border-b border-border/50 pb-2">Facilities</h3>
                             <div className="flex flex-wrap gap-2">
-                                <FacilityBadge icon={Wind} label="A/C" available={place.airConditioning} />
-                                <FacilityBadge icon={Coffee} label="Restroom" available={place.restroomAvailable} />
-                                <FacilityBadge icon={Car} label="Parking" available={place.parkingAvailable} />
-                                <FacilityBadge icon={Thermometer} label="Outdoor Area" available={place.smokingArea !== 'none'} />
-                                <FacilityBadge icon={Moon} label="Prayer Room" available={place.prayerRoomAvailable} />
+                                <FacilityBadge icon={Wind} label="A/C" available={place.air_conditioning} />
+                                <FacilityBadge icon={Coffee} label="Restroom" available={place.restroom_available} />
+                                <FacilityBadge icon={Car} label="Parking" available={place.parking_available} />
+                                <FacilityBadge icon={Thermometer} label="Outdoor Area" available={place.smoking_area !== 'none'} />
+                                <FacilityBadge icon={Moon} label="Prayer Room" available={place.prayer_room_available} />
                             </div>
                         </div>
                     </div>

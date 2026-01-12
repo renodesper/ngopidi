@@ -18,7 +18,7 @@ export async function getUsers() {
   await checkAdmin()
   try {
     const users = await prisma.user.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: { created_at: "desc" },
     })
     return { success: true, data: users }
   } catch (error) {

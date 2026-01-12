@@ -5,28 +5,28 @@ generator client {
 
 datasource db {
   provider   = "postgresql"
-  extensions = [postgis]
+  extensions = [postgis, uuid_ossp(map: "uuid-ossp", schema: "public")]
 }
 
 model User {
-  id             String    @id @default(uuid())
+  id             String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   name           String?
   email          String?   @unique
   email_verified DateTime?
   image          String?
   password       String?
   role           UserRole  @default(USER)
+  created_at     DateTime  @default(now()) @map("created_at")
+  updated_at     DateTime  @updatedAt @map("updated_at")
   accounts       Account[]
   sessions       Session[]
-  created_at     DateTime @default(now()) @map("created_at")
-  updated_at     DateTime @updatedAt      @map("updated_at")
 
   @@map("users")
 }
 
 model Account {
-  id                  String @id @default(uuid()) @db.Uuid
-  user_id             String @db.Uuid
+  id                  String  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user_id             String  @db.Uuid
   type                String
   provider            String
   provider_account_id String
@@ -37,44 +37,102 @@ model Account {
   scope               String?
   id_token            String?
   session_state       String?
-  created_at DateTime @default(now()) @map("created_at")
-  updated_at DateTime @updatedAt      @map("updated_at")
-
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user                User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([provider, provider_account_id])
   @@map("accounts")
 }
 
-
 model Session {
-  id            String   @id @default(uuid()) @db.Uuid
+  id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   session_token String   @unique
   user_id       String   @db.Uuid
   expires       DateTime
-  created_at    DateTime @default(now()) @map("created_at")
-  updated_at    DateTime @updatedAt      @map("updated_at")
-
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("sessions")
 }
-
 
 model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
-  created_at DateTime @default(now()) @map("created_at")
-  updated_at DateTime @updatedAt      @map("updated_at")
 
   @@unique([identifier, token])
   @@map("verification_tokens")
 }
 
-// ===========================
-// ENUMS
-// ===========================
+model Place {
+  id                      String                    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                    String
+  description             String?
+  address                 String
+  latitude                Float
+  longitude               Float
+  geo                     Unsupported("geography")?
+  price_level             Int?                      @map("price_level")
+  average_drink_price     Int?                      @map("average_drink_price")
+  minimum_spend           Int?                      @map("minimum_spend")
+  wifi_available          Boolean                   @default(false) @map("wifi_available")
+  wifi_speed              Int?                      @map("wifi_speed")
+  wifi_stability          WifiStability?            @map("wifi_stability")
+  wifi_policy             WifiPolicy?               @map("wifi_policy")
+  power_outlets_available Boolean                   @default(false) @map("power_outlets_available")
+  power_outlet_density    OutletDensity?            @map("power_outlet_density")
+  table_size              TableSize?                @map("table_size")
+  seating_types           SeatingType[]             @map("seating_types")
+  noise_level             NoiseLevel?               @map("noise_level")
+  music_volume            MusicVolume?              @map("music_volume")
+  crowd_level             CrowdLevel?               @map("crowd_level")
+  laptop_friendly         Boolean?                  @map("laptop_friendly")
+  stay_policy             StayPolicy?               @map("stay_policy")
+  meeting_friendly        Boolean?                  @map("meeting_friendly")
+  call_friendly           Boolean?                  @map("call_friendly")
+  work_friendly_score     Float?
+  air_conditioning        Boolean?                  @map("air_conditioning")
+  temperature_comfort     TemperatureComfort?       @map("temperature_comfort")
+  restroom_available      Boolean?                  @map("restroom_available")
+  prayer_room_available   Boolean                   @default(false)
+  smoking_area            SmokingArea?              @map("smoking_area")
+  parking_available       Boolean?                  @map("parking_available")
+  opening_hours           String?                   @map("opening_hours")
+  busy_hours              String?                   @map("busy_hours")
+  common_visitors         CommonVisitor[]           @map("common_visitors")
+  status                  PlaceStatus               @default(PENDING)
+  created_at              DateTime                  @default(now()) @map("created_at")
+  updated_at              DateTime                  @updatedAt @map("updated_at")
+  images                  PlaceImage[]
+
+  @@index([status])
+  @@index([laptop_friendly])
+  @@index([latitude, longitude])
+  @@index([wifi_available, power_outlets_available])
+  @@index([noise_level, work_friendly_score])
+  @@index([geo], map: "idx_places_geo", type: Gist)
+  @@index([address(ops: raw("gin_trgm_ops"))], map: "places_address_trgm_idx", type: Gin)
+  @@index([name(ops: raw("gin_trgm_ops"))], map: "places_name_trgm_idx", type: Gin)
+  @@map("places")
+}
+
+model PlaceImage {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  url        String
+  place_id   String   @db.Uuid
+  created_at DateTime @default(now()) @map("created_at")
+  place      Place    @relation(fields: [place_id], references: [id], onDelete: Cascade)
+
+  @@index([place_id])
+  @@map("place_images")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
 
 enum WifiStability {
   poor
@@ -159,89 +217,6 @@ enum PlaceStatus {
   VERIFIED_USER
   REJECTED
 }
-
-model Place {
-  id          String  @id @default(uuid())
-  name        String
-  description String?
-  address     String
-
-  // Spatial data
-  latitude  Float
-  longitude Float
-  geo       Unsupported("geography(Point,4326)")?
-
-  // Pricing
-  price_level         Int? @map("price_level") // 1–5
-  average_drink_price Int? @map("average_drink_price") // in local currency (e.g. IDR)
-  minimum_spend       Int? @map("minimum_spend")
-
-  // Connectivity
-  wifi_available Boolean        @default(false) @map("wifi_available")
-  wifi_speed     Int? @map("wifi_speed") // Mbps
-  wifi_stability WifiStability? @map("wifi_stability")
-  wifi_policy    WifiPolicy? @map("wifi_policy")
-
-  // Power & seating
-  power_outlets_available Boolean        @default(false) @map("power_outlets_available")
-  power_outlet_density    OutletDensity? @map("power_outlet_density")
-  table_size              TableSize? @map("table_size")
-  seating_types           SeatingType[] @map("seating_types")
-
-  // Environment
-  noise_level  NoiseLevel? @map("noise_level")
-  music_volume MusicVolume? @map("music_volume")
-  crowd_level  CrowdLevel? @map("crowd_level")
-
-  // Work suitability
-  laptop_friendly     Boolean? @map("laptop_friendly")
-  stay_policy         StayPolicy? @map("stay_policy")
-  meeting_friendly    Boolean? @map("meeting_friendly")
-  call_friendly       Boolean? @map("call_friendly")
-  work_friendly_score Float? // 1.0 – 5.0
-
-  // Facilities
-  air_conditioning      Boolean? @map("air_conditioning")
-  temperature_comfort   TemperatureComfort? @map("temperature_comfort")
-  restroom_available    Boolean? @map("restroom_available")
-  prayer_room_available Boolean            @default(false)
-  smoking_area          SmokingArea? @map("smoking_area")
-  parking_available     Boolean? @map("parking_available")
-
-  // Meta
-  opening_hours   String? @map("opening_hours") // keep flexible (JSON/string)
-  busy_hours      String? @map("busy_hours") // e.g. JSON time ranges
-  common_visitors CommonVisitor[] @map("common_visitors")
-
-  status PlaceStatus @default(PENDING)
-
-  images PlaceImage[]
-
-  created_at DateTime @default(now()) @map("created_at")
-  updated_at DateTime @updatedAt      @map("updated_at")
-
-  @@index([status])
-  @@index([laptop_friendly])
-  @@index([latitude, longitude])
-  @@index([wifi_available, power_outlets_available])
-  @@index([noise_level, work_friendly_score])
-  @@map("places")
-}
-
-model PlaceImage {
-  id       String @id @default(uuid()) @db.Uuid
-  url      String
-  place_id String @db.Uuid
-
-  place Place @relation(fields: [place_id], references: [id], onDelete: Cascade)
-
-  created_at DateTime @default(now()) @map("created_at")
-  updated_at DateTime @updatedAt      @map("updated_at")
-
-  @@index([place_id])
-  @@map("place_images")
-}
-
 
 enum UserRole {
   ADMIN

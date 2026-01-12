@@ -14,8 +14,8 @@ import { useRouter } from "next/navigation"
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   address: z.string().min(5, "Address must be at least 5 characters"),
-  wifiSpeed: z.number().optional(),
-  priceLevel: z.number().min(1).max(5).optional(),
+  wifi_speed: z.number().optional(),
+  price_level: z.number().min(1).max(5).optional(),
   latitude: z.number(),
   longitude: z.number(),
 })
@@ -25,7 +25,7 @@ type FormData = z.infer<typeof formSchema>
 export default function SubmitPage() {
   const router = useRouter()
   const [loadingLocation, setLoadingLocation] = useState(false)
-  
+
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -61,8 +61,8 @@ export default function SubmitPage() {
       address: data.address,
       latitude: data.latitude,
       longitude: data.longitude,
-      wifiSpeed: data.wifiSpeed,
-      priceLevel: data.priceLevel || 1,
+      wifi_speed: data.wifi_speed,
+      price_level: data.price_level || 1,
       status: "SUBMITTED"
     })
 
@@ -87,37 +87,37 @@ export default function SubmitPage() {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-               <Label>Place Name</Label>
-               <Input {...register("name")} placeholder="Coffee Shop Name" />
-               {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
+              <Label>Place Name</Label>
+              <Input {...register("name")} placeholder="Coffee Shop Name" />
+              {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
             </div>
 
             <div className="space-y-2">
-               <Label>Address</Label>
-               <Input {...register("address")} placeholder="Full Address" />
-               {errors.address && <p className="text-red-500 text-sm">{errors.address.message}</p>}
+              <Label>Address</Label>
+              <Input {...register("address")} placeholder="Full Address" />
+              {errors.address && <p className="text-red-500 text-sm">{errors.address.message}</p>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Wifi Speed (Mbps)</Label>
-                <Input type="number" {...register("wifiSpeed", { valueAsNumber: true })} placeholder="e.g. 50" />
+                <Input type="number" {...register("wifi_speed", { valueAsNumber: true })} placeholder="e.g. 50" />
               </div>
               <div className="space-y-2">
                 <Label>Price Level (1-5)</Label>
-                <Input type="number" min="1" max="5" {...register("priceLevel", { valueAsNumber: true })} placeholder="1" />
+                <Input type="number" min="1" max="5" {...register("price_level", { valueAsNumber: true })} placeholder="1" />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label>Location</Label>
               <div className="flex gap-2 items-center">
-                 <Button type="button" variant="outline" onClick={getLocation} disabled={loadingLocation}>
-                   {loadingLocation ? "Locating..." : "Use Current Location"}
-                 </Button>
-                 <div className="text-sm text-gray-500">
-                   {lat !== 0 ? `${lat.toFixed(4)}, ${lng.toFixed(4)}` : "No location set"}
-                 </div>
+                <Button type="button" variant="outline" onClick={getLocation} disabled={loadingLocation}>
+                  {loadingLocation ? "Locating..." : "Use Current Location"}
+                </Button>
+                <div className="text-sm text-gray-500">
+                  {lat !== 0 ? `${lat.toFixed(4)}, ${lng.toFixed(4)}` : "No location set"}
+                </div>
               </div>
               <Input type="hidden" {...register("latitude", { valueAsNumber: true })} />
               <Input type="hidden" {...register("longitude", { valueAsNumber: true })} />

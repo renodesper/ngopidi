@@ -25,8 +25,8 @@ export async function submitPlace(data: Prisma.PlaceCreateInput) {
 export async function getPlaces() {
   try {
     const places = await prisma.place.findMany({
-      include: { images: true },
-      orderBy: { createdAt: "desc" },
+      // include: { images: true },
+      orderBy: { created_at: "desc" },
     })
     return { success: true, data: places }
   } catch (error) {
@@ -39,7 +39,7 @@ export async function getPlaceById(id: string) {
   try {
     const place = await prisma.place.findUnique({
       where: { id },
-      include: { images: true },
+      // include: { images: true },
     })
     return { success: true, data: place }
   } catch (error) {
@@ -65,47 +65,47 @@ export interface PlaceFormData {
   latitude: number
   longitude: number
   status?: PlaceStatus
-  
+
   // Pricing
-  priceLevel?: number
-  averageDrinkPrice?: number
-  minimumSpend?: number
-  
+  price_level?: number
+  average_drink_price?: number
+  minimum_spend?: number
+
   // Connectivity
-  wifiAvailable?: boolean
-  wifiSpeed?: number
-  wifiStability?: string
-  wifiPolicy?: string
-  
+  wifi_available?: boolean
+  wifi_speed?: number
+  wifi_stability?: string
+  wifi_policy?: string
+
   // Power & Seating
-  powerOutletsAvailable?: boolean
-  powerOutletDensity?: string
-  tableSize?: string
-  seatingTypes?: string[]
-  
+  power_outlets_available?: boolean
+  power_outlet_density?: string
+  table_size?: string
+  seating_types?: string[]
+
   // Environment
-  noiseLevel?: string
-  musicVolume?: string
-  crowdLevel?: string
-  
+  noise_level?: string
+  music_volume?: string
+  crowd_level?: string
+
   // Work Suitability
-  laptopFriendly?: boolean
-  stayPolicy?: string
-  meetingFriendly?: boolean
-  callFriendly?: boolean
-  workFriendlyScore?: number
-  
+  laptop_friendly?: boolean
+  stay_policy?: string
+  meeting_friendly?: boolean
+  call_friendly?: boolean
+  work_friendly_score?: number
+
   // Facilities
-  airConditioning?: boolean
-  temperatureComfort?: string
-  restroomAvailable?: boolean
-  smokingArea?: string
-  parkingAvailable?: boolean
-  
+  air_conditioning?: boolean
+  temperature_comfort?: string
+  restroom_available?: boolean
+  smoking_area?: string
+  parking_available?: boolean
+
   // Meta
-  openingHours?: string
-  busyHours?: string
-  commonVisitors?: string[]
+  opening_hours?: string
+  busy_hours?: string
+  common_visitors?: string[]
 }
 
 export async function createPlace(data: PlaceFormData) {
@@ -119,40 +119,40 @@ export async function createPlace(data: PlaceFormData) {
         latitude: data.latitude,
         longitude: data.longitude,
         status: data.status ?? PlaceStatus.PENDING,
-        
-        priceLevel: data.priceLevel,
-        averageDrinkPrice: data.averageDrinkPrice,
-        minimumSpend: data.minimumSpend,
-        
-        wifiAvailable: data.wifiAvailable ?? false,
-        wifiSpeed: data.wifiSpeed,
-        wifiStability: data.wifiStability as any,
-        wifiPolicy: data.wifiPolicy as any,
-        
-        powerOutletsAvailable: data.powerOutletsAvailable ?? false,
-        powerOutletDensity: data.powerOutletDensity as any,
-        tableSize: data.tableSize as any,
-        seatingTypes: data.seatingTypes as any,
-        
-        noiseLevel: data.noiseLevel as any,
-        musicVolume: data.musicVolume as any,
-        crowdLevel: data.crowdLevel as any,
-        
-        laptopFriendly: data.laptopFriendly,
-        stayPolicy: data.stayPolicy as any,
-        meetingFriendly: data.meetingFriendly,
-        callFriendly: data.callFriendly,
-        workFriendlyScore: data.workFriendlyScore,
-        
-        airConditioning: data.airConditioning,
-        temperatureComfort: data.temperatureComfort as any,
-        restroomAvailable: data.restroomAvailable,
-        smokingArea: data.smokingArea as any,
-        parkingAvailable: data.parkingAvailable,
-        
-        openingHours: data.openingHours,
-        busyHours: data.busyHours,
-        commonVisitors: data.commonVisitors as any,
+
+        price_level: data.price_level,
+        average_drink_price: data.average_drink_price,
+        minimum_spend: data.minimum_spend,
+
+        wifi_available: data.wifi_available ?? false,
+        wifi_speed: data.wifi_speed,
+        wifi_stability: data.wifi_stability as any,
+        wifi_policy: data.wifi_policy as any,
+
+        power_outlets_available: data.power_outlets_available ?? false,
+        power_outlet_density: data.power_outlet_density as any,
+        table_size: data.table_size as any,
+        seating_types: data.seating_types as any,
+
+        noise_level: data.noise_level as any,
+        music_volume: data.music_volume as any,
+        crowd_level: data.crowd_level as any,
+
+        laptop_friendly: data.laptop_friendly,
+        stay_policy: data.stay_policy as any,
+        meeting_friendly: data.meeting_friendly,
+        call_friendly: data.call_friendly,
+        work_friendly_score: data.work_friendly_score,
+
+        air_conditioning: data.air_conditioning,
+        temperature_comfort: data.temperature_comfort as any,
+        restroom_available: data.restroom_available,
+        smoking_area: data.smoking_area as any,
+        parking_available: data.parking_available,
+
+        opening_hours: data.opening_hours,
+        busy_hours: data.busy_hours,
+        common_visitors: data.common_visitors as any,
       },
     })
     revalidatePath("/dashboard/places")
@@ -200,40 +200,40 @@ export async function updatePlace(id: string, data: Partial<PlaceFormData>) {
         latitude: data.latitude,
         longitude: data.longitude,
         status: data.status,
-        
-        priceLevel: data.priceLevel,
-        averageDrinkPrice: data.averageDrinkPrice,
-        minimumSpend: data.minimumSpend,
-        
-        wifiAvailable: data.wifiAvailable,
-        wifiSpeed: data.wifiSpeed,
-        wifiStability: data.wifiStability as any,
-        wifiPolicy: data.wifiPolicy as any,
-        
-        powerOutletsAvailable: data.powerOutletsAvailable,
-        powerOutletDensity: data.powerOutletDensity as any,
-        tableSize: data.tableSize as any,
-        seatingTypes: data.seatingTypes as any,
-        
-        noiseLevel: data.noiseLevel as any,
-        musicVolume: data.musicVolume as any,
-        crowdLevel: data.crowdLevel as any,
-        
-        laptopFriendly: data.laptopFriendly,
-        stayPolicy: data.stayPolicy as any,
-        meetingFriendly: data.meetingFriendly,
-        callFriendly: data.callFriendly,
-        workFriendlyScore: data.workFriendlyScore,
-        
-        airConditioning: data.airConditioning,
-        temperatureComfort: data.temperatureComfort as any,
-        restroomAvailable: data.restroomAvailable,
-        smokingArea: data.smokingArea as any,
-        parkingAvailable: data.parkingAvailable,
-        
-        openingHours: data.openingHours,
-        busyHours: data.busyHours,
-        commonVisitors: data.commonVisitors as any,
+
+        price_level: data.price_level,
+        average_drink_price: data.average_drink_price,
+        minimum_spend: data.minimum_spend,
+
+        wifi_available: data.wifi_available,
+        wifi_speed: data.wifi_speed,
+        wifi_stability: data.wifi_stability as any,
+        wifi_policy: data.wifi_policy as any,
+
+        power_outlets_available: data.power_outlets_available,
+        power_outlet_density: data.power_outlet_density as any,
+        table_size: data.table_size as any,
+        seating_types: data.seating_types as any,
+
+        noise_level: data.noise_level as any,
+        music_volume: data.music_volume as any,
+        crowd_level: data.crowd_level as any,
+
+        laptop_friendly: data.laptop_friendly,
+        stay_policy: data.stay_policy as any,
+        meeting_friendly: data.meeting_friendly,
+        call_friendly: data.call_friendly,
+        work_friendly_score: data.work_friendly_score,
+
+        air_conditioning: data.air_conditioning,
+        temperature_comfort: data.temperature_comfort as any,
+        restroom_available: data.restroom_available,
+        smoking_area: data.smoking_area as any,
+        parking_available: data.parking_available,
+
+        opening_hours: data.opening_hours,
+        busy_hours: data.busy_hours,
+        common_visitors: data.common_visitors as any,
       },
     })
     revalidatePath("/dashboard/places")

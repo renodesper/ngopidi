@@ -20,8 +20,8 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  MoreHorizontal, Pencil, Trash, CheckCircle, Plus, MapPin, Wifi, 
+import {
+  MoreHorizontal, Pencil, Trash, CheckCircle, Plus, MapPin, Wifi,
   Plug, Volume2, Briefcase, Building, Clock, DollarSign, Users
 } from 'lucide-react'
 import { createPlace, deletePlace, updatePlace, verifyPlace, PlaceFormData } from "@/app/actions/places"
@@ -35,44 +35,44 @@ interface Place {
   status: PlaceStatus
   latitude: number
   longitude: number
-  priceLevel: number | null
-  averageDrinkPrice: number | null
-  minimumSpend: number | null
-  wifiAvailable: boolean
-  wifiSpeed: number | null
-  wifiStability: string | null
-  wifiPolicy: string | null
-  powerOutletsAvailable: boolean
-  powerOutletDensity: string | null
-  tableSize: string | null
-  seatingTypes: string[]
-  noiseLevel: string | null
-  musicVolume: string | null
-  crowdLevel: string | null
-  laptopFriendly: boolean | null
-  stayPolicy: string | null
-  meetingFriendly: boolean | null
-  callFriendly: boolean | null
-  workFriendlyScore: number | null
-  airConditioning: boolean | null
-  temperatureComfort: string | null
-  restroomAvailable: boolean | null
-  smokingArea: string | null
-  parkingAvailable: boolean | null
-  openingHours: string | null
-  busyHours: string | null
-  commonVisitors: string[]
+  price_level: number | null
+  average_drink_price: number | null
+  minimum_spend: number | null
+  wifi_available: boolean
+  wifi_speed: number | null
+  wifi_stability: string | null
+  wifi_policy: string | null
+  power_outlets_available: boolean
+  power_outlet_density: string | null
+  table_size: string | null
+  seating_types: string[]
+  noise_level: string | null
+  music_volume: string | null
+  crowd_level: string | null
+  laptop_friendly: boolean | null
+  stay_policy: string | null
+  meeting_friendly: boolean | null
+  call_friendly: boolean | null
+  work_friendly_score: number | null
+  air_conditioning: boolean | null
+  temperature_comfort: string | null
+  restroom_available: boolean | null
+  smoking_area: string | null
+  parking_available: boolean | null
+  opening_hours: string | null
+  busy_hours: string | null
+  common_visitors: string[]
 }
 
 const defaultFormData = {
   name: '', address: '', description: '', latitude: '', longitude: '', status: 'PENDING' as PlaceStatus,
-  priceLevel: '', averageDrinkPrice: '', minimumSpend: '',
-  wifiAvailable: false, wifiSpeed: '', wifiStability: '', wifiPolicy: '',
-  powerOutletsAvailable: false, powerOutletDensity: '', tableSize: '', seatingTypes: [] as string[],
-  noiseLevel: '', musicVolume: '', crowdLevel: '',
-  laptopFriendly: false, stayPolicy: '', meetingFriendly: false, callFriendly: false, workFriendlyScore: '',
-  airConditioning: false, temperatureComfort: '', restroomAvailable: false, smokingArea: '', parkingAvailable: false,
-  openingHours: '', busyHours: '', commonVisitors: [] as string[],
+  price_level: '', average_drink_price: '', minimum_spend: '',
+  wifi_available: false, wifi_speed: '', wifi_stability: '', wifi_policy: '',
+  power_outlets_available: false, power_outlet_density: '', table_size: '', seating_types: [] as string[],
+  noise_level: '', music_volume: '', crowd_level: '',
+  laptop_friendly: false, stay_policy: '', meeting_friendly: false, call_friendly: false, work_friendly_score: '',
+  air_conditioning: false, temperature_comfort: '', restroom_available: false, smoking_area: '', parking_available: false,
+  opening_hours: '', busy_hours: '', common_visitors: [] as string[],
 }
 
 // Modern styled form field component
@@ -89,23 +89,21 @@ const ChipButton = ({ active, onClick, children }: { active: boolean; onClick: (
   <button
     type="button"
     onClick={onClick}
-    className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${
-      active 
-        ? 'bg-primary text-primary-foreground shadow-sm' 
+    className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${active
+        ? 'bg-primary text-primary-foreground shadow-sm'
         : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-    }`}
+      }`}
   >
     {children}
   </button>
 )
 
 // Feature toggle with icon
-const FeatureToggle = ({ icon: Icon, label, checked, onChange }: { 
-  icon: React.ElementType; label: string; checked: boolean; onChange: (v: boolean) => void 
+const FeatureToggle = ({ icon: Icon, label, checked, onChange }: {
+  icon: React.ElementType; label: string; checked: boolean; onChange: (v: boolean) => void
 }) => (
-  <div className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-200 ${
-    checked ? 'border-primary/30 bg-primary/5' : 'border-border/50 bg-muted/20'
-  }`}>
+  <div className={`flex items-center justify-between p-3 rounded-xl border transition-all duration-200 ${checked ? 'border-primary/30 bg-primary/5' : 'border-border/50 bg-muted/20'
+    }`}>
     <div className="flex items-center gap-3">
       <div className={`p-2 rounded-lg ${checked ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
         <Icon className="h-4 w-4" />
@@ -132,21 +130,21 @@ export function PlacesTable({ places }: { places: Place[] }) {
     setFormData({
       name: place.name, address: place.address, description: place.description || '',
       latitude: String(place.latitude), longitude: String(place.longitude), status: place.status,
-      priceLevel: place.priceLevel ? String(place.priceLevel) : '',
-      averageDrinkPrice: place.averageDrinkPrice ? String(place.averageDrinkPrice) : '',
-      minimumSpend: place.minimumSpend ? String(place.minimumSpend) : '',
-      wifiAvailable: place.wifiAvailable, wifiSpeed: place.wifiSpeed ? String(place.wifiSpeed) : '',
-      wifiStability: place.wifiStability || '', wifiPolicy: place.wifiPolicy || '',
-      powerOutletsAvailable: place.powerOutletsAvailable, powerOutletDensity: place.powerOutletDensity || '',
-      tableSize: place.tableSize || '', seatingTypes: place.seatingTypes || [],
-      noiseLevel: place.noiseLevel || '', musicVolume: place.musicVolume || '', crowdLevel: place.crowdLevel || '',
-      laptopFriendly: place.laptopFriendly ?? false, stayPolicy: place.stayPolicy || '',
-      meetingFriendly: place.meetingFriendly ?? false, callFriendly: place.callFriendly ?? false,
-      workFriendlyScore: place.workFriendlyScore ? String(place.workFriendlyScore) : '',
-      airConditioning: place.airConditioning ?? false, temperatureComfort: place.temperatureComfort || '',
-      restroomAvailable: place.restroomAvailable ?? false, smokingArea: place.smokingArea || '',
-      parkingAvailable: place.parkingAvailable ?? false,
-      openingHours: place.openingHours || '', busyHours: place.busyHours || '', commonVisitors: place.commonVisitors || [],
+      price_level: place.price_level ? String(place.price_level) : '',
+      average_drink_price: place.average_drink_price ? String(place.average_drink_price) : '',
+      minimum_spend: place.minimum_spend ? String(place.minimum_spend) : '',
+      wifi_available: place.wifi_available, wifi_speed: place.wifi_speed ? String(place.wifi_speed) : '',
+      wifi_stability: place.wifi_stability || '', wifi_policy: place.wifi_policy || '',
+      power_outlets_available: place.power_outlets_available, power_outlet_density: place.power_outlet_density || '',
+      table_size: place.table_size || '', seating_types: place.seating_types || [],
+      noise_level: place.noise_level || '', music_volume: place.music_volume || '', crowd_level: place.crowd_level || '',
+      laptop_friendly: place.laptop_friendly ?? false, stay_policy: place.stay_policy || '',
+      meeting_friendly: place.meeting_friendly ?? false, call_friendly: place.call_friendly ?? false,
+      work_friendly_score: place.work_friendly_score ? String(place.work_friendly_score) : '',
+      air_conditioning: place.air_conditioning ?? false, temperature_comfort: place.temperature_comfort || '',
+      restroom_available: place.restroom_available ?? false, smoking_area: place.smoking_area || '',
+      parking_available: place.parking_available ?? false,
+      opening_hours: place.opening_hours || '', busy_hours: place.busy_hours || '', common_visitors: place.common_visitors || [],
     })
     setActiveTab('basic')
     setEditOpen(true)
@@ -162,23 +160,23 @@ export function PlacesTable({ places }: { places: Place[] }) {
   const buildPayload = (): PlaceFormData => ({
     name: formData.name, address: formData.address, description: formData.description || undefined,
     latitude: parseFloat(formData.latitude) || 0, longitude: parseFloat(formData.longitude) || 0, status: formData.status,
-    priceLevel: formData.priceLevel ? parseInt(formData.priceLevel) : undefined,
-    averageDrinkPrice: formData.averageDrinkPrice ? parseInt(formData.averageDrinkPrice) : undefined,
-    minimumSpend: formData.minimumSpend ? parseInt(formData.minimumSpend) : undefined,
-    wifiAvailable: formData.wifiAvailable,
-    wifiSpeed: formData.wifiSpeed ? parseInt(formData.wifiSpeed) : undefined,
-    wifiStability: formData.wifiStability || undefined, wifiPolicy: formData.wifiPolicy || undefined,
-    powerOutletsAvailable: formData.powerOutletsAvailable, powerOutletDensity: formData.powerOutletDensity || undefined,
-    tableSize: formData.tableSize || undefined, seatingTypes: formData.seatingTypes.length ? formData.seatingTypes : undefined,
-    noiseLevel: formData.noiseLevel || undefined, musicVolume: formData.musicVolume || undefined, crowdLevel: formData.crowdLevel || undefined,
-    laptopFriendly: formData.laptopFriendly, stayPolicy: formData.stayPolicy || undefined,
-    meetingFriendly: formData.meetingFriendly, callFriendly: formData.callFriendly,
-    workFriendlyScore: formData.workFriendlyScore ? parseFloat(formData.workFriendlyScore) : undefined,
-    airConditioning: formData.airConditioning, temperatureComfort: formData.temperatureComfort || undefined,
-    restroomAvailable: formData.restroomAvailable, smokingArea: formData.smokingArea || undefined,
-    parkingAvailable: formData.parkingAvailable,
-    openingHours: formData.openingHours || undefined, busyHours: formData.busyHours || undefined,
-    commonVisitors: formData.commonVisitors.length ? formData.commonVisitors : undefined,
+    price_level: formData.price_level ? parseInt(formData.price_level) : undefined,
+    average_drink_price: formData.average_drink_price ? parseInt(formData.average_drink_price) : undefined,
+    minimum_spend: formData.minimum_spend ? parseInt(formData.minimum_spend) : undefined,
+    wifi_available: formData.wifi_available,
+    wifi_speed: formData.wifi_speed ? parseInt(formData.wifi_speed) : undefined,
+    wifi_stability: formData.wifi_stability || undefined, wifi_policy: formData.wifi_policy || undefined,
+    power_outlets_available: formData.power_outlets_available, power_outlet_density: formData.power_outlet_density || undefined,
+    table_size: formData.table_size || undefined, seating_types: formData.seating_types.length ? formData.seating_types : undefined,
+    noise_level: formData.noise_level || undefined, music_volume: formData.music_volume || undefined, crowd_level: formData.crowd_level || undefined,
+    laptop_friendly: formData.laptop_friendly, stay_policy: formData.stay_policy || undefined,
+    meeting_friendly: formData.meeting_friendly, call_friendly: formData.call_friendly,
+    work_friendly_score: formData.work_friendly_score ? parseFloat(formData.work_friendly_score) : undefined,
+    air_conditioning: formData.air_conditioning, temperature_comfort: formData.temperature_comfort || undefined,
+    restroom_available: formData.restroom_available, smoking_area: formData.smoking_area || undefined,
+    parking_available: formData.parking_available,
+    opening_hours: formData.opening_hours || undefined, busy_hours: formData.busy_hours || undefined,
+    common_visitors: formData.common_visitors.length ? formData.common_visitors : undefined,
   })
 
   const handleSubmitCreate = async () => {
@@ -201,18 +199,18 @@ export function PlacesTable({ places }: { places: Place[] }) {
   const toggleSeatingType = (type: string) => {
     setFormData(prev => ({
       ...prev,
-      seatingTypes: prev.seatingTypes.includes(type)
-        ? prev.seatingTypes.filter(t => t !== type)
-        : [...prev.seatingTypes, type]
+      seating_types: prev.seating_types.includes(type)
+        ? prev.seating_types.filter(t => t !== type)
+        : [...prev.seating_types, type]
     }))
   }
 
   const toggleCommonVisitor = (visitor: string) => {
     setFormData(prev => ({
       ...prev,
-      commonVisitors: prev.commonVisitors.includes(visitor)
-        ? prev.commonVisitors.filter(v => v !== visitor)
-        : [...prev.commonVisitors, visitor]
+      common_visitors: prev.common_visitors.includes(visitor)
+        ? prev.common_visitors.filter(v => v !== visitor)
+        : [...prev.common_visitors, visitor]
     }))
   }
 
@@ -241,28 +239,28 @@ export function PlacesTable({ places }: { places: Place[] }) {
         <TabsContent value="basic" className="mt-6 space-y-5">
           <div className="grid gap-4">
             <FormField label="Place Name">
-              <Input 
-                placeholder="Enter cafe or workspace name" 
-                value={formData.name} 
-                onChange={e => setFormData({...formData, name: e.target.value})}
+              <Input
+                placeholder="Enter cafe or workspace name"
+                value={formData.name}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
                 className="h-11"
               />
             </FormField>
-            
+
             <FormField label="Address">
-              <Input 
-                placeholder="Full address" 
-                value={formData.address} 
-                onChange={e => setFormData({...formData, address: e.target.value})}
+              <Input
+                placeholder="Full address"
+                value={formData.address}
+                onChange={e => setFormData({ ...formData, address: e.target.value })}
                 className="h-11"
               />
             </FormField>
-            
+
             <FormField label="Description" hint="Brief description of the place">
-              <Textarea 
-                placeholder="A cozy cafe with great coffee..." 
-                value={formData.description} 
-                onChange={e => setFormData({...formData, description: e.target.value})}
+              <Textarea
+                placeholder="A cozy cafe with great coffee..."
+                value={formData.description}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
                 className="resize-none"
                 rows={3}
               />
@@ -276,18 +274,18 @@ export function PlacesTable({ places }: { places: Place[] }) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <FormField label="Latitude">
-                <Input 
-                  type="number" step="any" placeholder="-6.2088" 
-                  value={formData.latitude} 
-                  onChange={e => setFormData({...formData, latitude: e.target.value})}
+                <Input
+                  type="number" step="any" placeholder="-6.2088"
+                  value={formData.latitude}
+                  onChange={e => setFormData({ ...formData, latitude: e.target.value })}
                   className="h-10"
                 />
               </FormField>
               <FormField label="Longitude">
-                <Input 
-                  type="number" step="any" placeholder="106.8456" 
-                  value={formData.longitude} 
-                  onChange={e => setFormData({...formData, longitude: e.target.value})}
+                <Input
+                  type="number" step="any" placeholder="106.8456"
+                  value={formData.longitude}
+                  onChange={e => setFormData({ ...formData, longitude: e.target.value })}
                   className="h-10"
                 />
               </FormField>
@@ -301,26 +299,26 @@ export function PlacesTable({ places }: { places: Place[] }) {
             </div>
             <div className="grid grid-cols-3 gap-3">
               <FormField label="Price Level" hint="1-5">
-                <Input 
+                <Input
                   type="number" min="1" max="5" placeholder="3"
-                  value={formData.priceLevel} 
-                  onChange={e => setFormData({...formData, priceLevel: e.target.value})}
+                  value={formData.price_level}
+                  onChange={e => setFormData({ ...formData, price_level: e.target.value })}
                   className="h-10"
                 />
               </FormField>
               <FormField label="Avg Drink" hint="IDR">
-                <Input 
+                <Input
                   type="number" placeholder="35000"
-                  value={formData.averageDrinkPrice} 
-                  onChange={e => setFormData({...formData, averageDrinkPrice: e.target.value})}
+                  value={formData.average_drink_price}
+                  onChange={e => setFormData({ ...formData, average_drink_price: e.target.value })}
                   className="h-10"
                 />
               </FormField>
               <FormField label="Min Spend" hint="IDR">
-                <Input 
+                <Input
                   type="number" placeholder="25000"
-                  value={formData.minimumSpend} 
-                  onChange={e => setFormData({...formData, minimumSpend: e.target.value})}
+                  value={formData.minimum_spend}
+                  onChange={e => setFormData({ ...formData, minimum_spend: e.target.value })}
                   className="h-10"
                 />
               </FormField>
@@ -334,18 +332,18 @@ export function PlacesTable({ places }: { places: Place[] }) {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <FormField label="Opening Hours">
-                <Input 
-                  placeholder="08:00 - 22:00" 
-                  value={formData.openingHours} 
-                  onChange={e => setFormData({...formData, openingHours: e.target.value})}
+                <Input
+                  placeholder="08:00 - 22:00"
+                  value={formData.opening_hours}
+                  onChange={e => setFormData({ ...formData, opening_hours: e.target.value })}
                   className="h-10"
                 />
               </FormField>
               <FormField label="Busy Hours">
-                <Input 
-                  placeholder="12:00 - 14:00" 
-                  value={formData.busyHours} 
-                  onChange={e => setFormData({...formData, busyHours: e.target.value})}
+                <Input
+                  placeholder="12:00 - 14:00"
+                  value={formData.busy_hours}
+                  onChange={e => setFormData({ ...formData, busy_hours: e.target.value })}
                   className="h-10"
                 />
               </FormField>
@@ -353,7 +351,7 @@ export function PlacesTable({ places }: { places: Place[] }) {
           </div>
 
           <FormField label="Status">
-            <Select value={formData.status} onValueChange={v => setFormData({...formData, status: v as PlaceStatus})}>
+            <Select value={formData.status} onValueChange={v => setFormData({ ...formData, status: v as PlaceStatus })}>
               <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="PENDING">Pending</SelectItem>
@@ -366,26 +364,26 @@ export function PlacesTable({ places }: { places: Place[] }) {
 
         {/* Connectivity Tab */}
         <TabsContent value="connectivity" className="mt-6 space-y-5">
-          <FeatureToggle 
-            icon={Wifi} 
-            label="WiFi Available" 
-            checked={formData.wifiAvailable}
-            onChange={v => setFormData({...formData, wifiAvailable: v, wifiSpeed: '', wifiStability: '', wifiPolicy: ''})}
+          <FeatureToggle
+            icon={Wifi}
+            label="WiFi Available"
+            checked={formData.wifi_available}
+            onChange={v => setFormData({ ...formData, wifi_available: v, wifi_speed: '', wifi_stability: '', wifi_policy: '' })}
           />
-          
-          {formData.wifiAvailable && (
+
+          {formData.wifi_available && (
             <div className="pl-4 ml-2 border-l-2 border-primary/20 space-y-4 animate-in slide-in-from-top-2 duration-200">
               <div className="grid grid-cols-3 gap-3">
                 <FormField label="Speed (Mbps)">
-                  <Input 
-                    type="number" placeholder="50" 
-                    value={formData.wifiSpeed} 
-                    onChange={e => setFormData({...formData, wifiSpeed: e.target.value})}
+                  <Input
+                    type="number" placeholder="50"
+                    value={formData.wifi_speed}
+                    onChange={e => setFormData({ ...formData, wifi_speed: e.target.value })}
                     className="h-10"
                   />
                 </FormField>
                 <FormField label="Stability">
-                  <Select value={formData.wifiStability} onValueChange={v => setFormData({...formData, wifiStability: v})}>
+                  <Select value={formData.wifi_stability} onValueChange={v => setFormData({ ...formData, wifi_stability: v })}>
                     <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="poor">Poor</SelectItem>
@@ -396,7 +394,7 @@ export function PlacesTable({ places }: { places: Place[] }) {
                   </Select>
                 </FormField>
                 <FormField label="Policy">
-                  <Select value={formData.wifiPolicy} onValueChange={v => setFormData({...formData, wifiPolicy: v})}>
+                  <Select value={formData.wifi_policy} onValueChange={v => setFormData({ ...formData, wifi_policy: v })}>
                     <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="free">Free</SelectItem>
@@ -409,17 +407,17 @@ export function PlacesTable({ places }: { places: Place[] }) {
             </div>
           )}
 
-          <FeatureToggle 
-            icon={Plug} 
-            label="Power Outlets" 
-            checked={formData.powerOutletsAvailable}
-            onChange={v => setFormData({...formData, powerOutletsAvailable: v, powerOutletDensity: ''})}
+          <FeatureToggle
+            icon={Plug}
+            label="Power Outlets"
+            checked={formData.power_outlets_available}
+            onChange={v => setFormData({ ...formData, power_outlets_available: v, power_outlet_density: '' })}
           />
-          
-          {formData.powerOutletsAvailable && (
+
+          {formData.power_outlets_available && (
             <div className="pl-4 ml-2 border-l-2 border-primary/20 animate-in slide-in-from-top-2 duration-200">
               <FormField label="Outlet Density">
-                <Select value={formData.powerOutletDensity} onValueChange={v => setFormData({...formData, powerOutletDensity: v})}>
+                <Select value={formData.power_outlet_density} onValueChange={v => setFormData({ ...formData, power_outlet_density: v })}>
                   <SelectTrigger className="h-10 w-48"><SelectValue placeholder="Select" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="few">Few</SelectItem>
@@ -436,7 +434,7 @@ export function PlacesTable({ places }: { places: Place[] }) {
         <TabsContent value="environment" className="mt-6 space-y-5">
           <div className="grid grid-cols-3 gap-3">
             <FormField label="Noise Level">
-              <Select value={formData.noiseLevel} onValueChange={v => setFormData({...formData, noiseLevel: v})}>
+              <Select value={formData.noise_level} onValueChange={v => setFormData({ ...formData, noise_level: v })}>
                 <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="quiet">🤫 Quiet</SelectItem>
@@ -446,7 +444,7 @@ export function PlacesTable({ places }: { places: Place[] }) {
               </Select>
             </FormField>
             <FormField label="Music Volume">
-              <Select value={formData.musicVolume} onValueChange={v => setFormData({...formData, musicVolume: v})}>
+              <Select value={formData.music_volume} onValueChange={v => setFormData({ ...formData, music_volume: v })}>
                 <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="low">🔈 Low</SelectItem>
@@ -456,7 +454,7 @@ export function PlacesTable({ places }: { places: Place[] }) {
               </Select>
             </FormField>
             <FormField label="Crowd Level">
-              <Select value={formData.crowdLevel} onValueChange={v => setFormData({...formData, crowdLevel: v})}>
+              <Select value={formData.crowd_level} onValueChange={v => setFormData({ ...formData, crowd_level: v })}>
                 <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="empty">Empty</SelectItem>
@@ -468,7 +466,7 @@ export function PlacesTable({ places }: { places: Place[] }) {
           </div>
 
           <FormField label="Table Size">
-            <Select value={formData.tableSize} onValueChange={v => setFormData({...formData, tableSize: v})}>
+            <Select value={formData.table_size} onValueChange={v => setFormData({ ...formData, table_size: v })}>
               <SelectTrigger className="h-10"><SelectValue placeholder="Select table size" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="small">Small</SelectItem>
@@ -486,9 +484,9 @@ export function PlacesTable({ places }: { places: Place[] }) {
                 { value: 'bar_seating', label: 'Bar Seating' },
                 { value: 'sofa', label: 'Sofa' }
               ].map(type => (
-                <ChipButton 
-                  key={type.value} 
-                  active={formData.seatingTypes.includes(type.value)} 
+                <ChipButton
+                  key={type.value}
+                  active={formData.seating_types.includes(type.value)}
                   onClick={() => toggleSeatingType(type.value)}
                 >
                   {type.label}
@@ -505,9 +503,9 @@ export function PlacesTable({ places }: { places: Place[] }) {
                 { value: 'meetings', label: '🤝 Meetings' },
                 { value: 'casual_visitors', label: '☕ Casual' }
               ].map(visitor => (
-                <ChipButton 
-                  key={visitor.value} 
-                  active={formData.commonVisitors.includes(visitor.value)} 
+                <ChipButton
+                  key={visitor.value}
+                  active={formData.common_visitors.includes(visitor.value)}
                   onClick={() => toggleCommonVisitor(visitor.value)}
                 >
                   {visitor.label}
@@ -520,30 +518,30 @@ export function PlacesTable({ places }: { places: Place[] }) {
         {/* Work Suitability Tab */}
         <TabsContent value="work" className="mt-6 space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <FeatureToggle 
-              icon={Briefcase} 
-              label="Laptop Friendly" 
-              checked={formData.laptopFriendly}
-              onChange={v => setFormData({...formData, laptopFriendly: v})}
+            <FeatureToggle
+              icon={Briefcase}
+              label="Laptop Friendly"
+              checked={formData.laptop_friendly}
+              onChange={v => setFormData({ ...formData, laptop_friendly: v })}
             />
-            <FeatureToggle 
-              icon={Users} 
-              label="Meeting Friendly" 
-              checked={formData.meetingFriendly}
-              onChange={v => setFormData({...formData, meetingFriendly: v})}
+            <FeatureToggle
+              icon={Users}
+              label="Meeting Friendly"
+              checked={formData.meeting_friendly}
+              onChange={v => setFormData({ ...formData, meeting_friendly: v })}
             />
           </div>
-          
-          <FeatureToggle 
-            icon={Volume2} 
-            label="Call Friendly" 
-            checked={formData.callFriendly}
-            onChange={v => setFormData({...formData, callFriendly: v})}
+
+          <FeatureToggle
+            icon={Volume2}
+            label="Call Friendly"
+            checked={formData.call_friendly}
+            onChange={v => setFormData({ ...formData, call_friendly: v })}
           />
 
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Stay Policy">
-              <Select value={formData.stayPolicy} onValueChange={v => setFormData({...formData, stayPolicy: v})}>
+              <Select value={formData.stay_policy} onValueChange={v => setFormData({ ...formData, stay_policy: v })}>
                 <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="no_limit">No Limit</SelectItem>
@@ -553,10 +551,10 @@ export function PlacesTable({ places }: { places: Place[] }) {
               </Select>
             </FormField>
             <FormField label="Work Score" hint="1.0 - 5.0">
-              <Input 
+              <Input
                 type="number" min="1" max="5" step="0.1" placeholder="4.5"
-                value={formData.workFriendlyScore} 
-                onChange={e => setFormData({...formData, workFriendlyScore: e.target.value})}
+                value={formData.work_friendly_score}
+                onChange={e => setFormData({ ...formData, work_friendly_score: e.target.value })}
                 className="h-10"
               />
             </FormField>
@@ -566,30 +564,30 @@ export function PlacesTable({ places }: { places: Place[] }) {
         {/* Facilities Tab */}
         <TabsContent value="facilities" className="mt-6 space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <FeatureToggle 
-              icon={Building} 
-              label="Air Conditioning" 
-              checked={formData.airConditioning}
-              onChange={v => setFormData({...formData, airConditioning: v})}
+            <FeatureToggle
+              icon={Building}
+              label="Air Conditioning"
+              checked={formData.air_conditioning}
+              onChange={v => setFormData({ ...formData, air_conditioning: v })}
             />
-            <FeatureToggle 
-              icon={Building} 
-              label="Restroom" 
-              checked={formData.restroomAvailable}
-              onChange={v => setFormData({...formData, restroomAvailable: v})}
+            <FeatureToggle
+              icon={Building}
+              label="Restroom"
+              checked={formData.restroom_available}
+              onChange={v => setFormData({ ...formData, restroom_available: v })}
             />
           </div>
-          
-          <FeatureToggle 
-            icon={Building} 
-            label="Parking Available" 
-            checked={formData.parkingAvailable}
-            onChange={v => setFormData({...formData, parkingAvailable: v})}
+
+          <FeatureToggle
+            icon={Building}
+            label="Parking Available"
+            checked={formData.parking_available}
+            onChange={v => setFormData({ ...formData, parking_available: v })}
           />
 
           <div className="grid grid-cols-2 gap-4">
             <FormField label="Temperature">
-              <Select value={formData.temperatureComfort} onValueChange={v => setFormData({...formData, temperatureComfort: v})}>
+              <Select value={formData.temperature_comfort} onValueChange={v => setFormData({ ...formData, temperature_comfort: v })}>
                 <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="cold">❄️ Cold</SelectItem>
@@ -599,7 +597,7 @@ export function PlacesTable({ places }: { places: Place[] }) {
               </Select>
             </FormField>
             <FormField label="Smoking Area">
-              <Select value={formData.smokingArea} onValueChange={v => setFormData({...formData, smokingArea: v})}>
+              <Select value={formData.smoking_area} onValueChange={v => setFormData({ ...formData, smoking_area: v })}>
                 <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">None</SelectItem>
@@ -631,8 +629,8 @@ export function PlacesTable({ places }: { places: Place[] }) {
             </div>
             <DialogFooter className="p-6 pt-4 border-t bg-muted/20">
               <Button variant="ghost" onClick={() => setCreateOpen(false)}>Cancel</Button>
-              <Button 
-                onClick={handleSubmitCreate} 
+              <Button
+                onClick={handleSubmitCreate}
                 disabled={loading || !formData.name || !formData.address || !formData.latitude || !formData.longitude}
                 className="min-w-[120px]"
               >
@@ -664,8 +662,8 @@ export function PlacesTable({ places }: { places: Place[] }) {
                   <TableCell className="font-medium">{place.name}</TableCell>
                   <TableCell className="max-w-[200px] truncate text-muted-foreground">{place.address}</TableCell>
                   <TableCell>{getStatusBadge(place.status)}</TableCell>
-                  <TableCell>{place.wifiAvailable ? (place.wifiSpeed ? `${place.wifiSpeed} Mbps` : "✓") : <span className="text-muted-foreground">—</span>}</TableCell>
-                  <TableCell>{place.priceLevel ? `${"$".repeat(place.priceLevel)}` : "—"}</TableCell>
+                  <TableCell>{place.wifi_available ? (place.wifi_speed ? `${place.wifi_speed} Mbps` : "✓") : <span className="text-muted-foreground">—</span>}</TableCell>
+                  <TableCell>{place.price_level ? `${"$".repeat(place.price_level)}` : "—"}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>

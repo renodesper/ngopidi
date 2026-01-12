@@ -44,7 +44,7 @@ interface User {
   name: string | null
   email: string | null
   role: UserRole
-  createdAt: Date
+  created_at: Date
 }
 
 export function UsersTable({ users }: { users: User[] }) {
@@ -179,7 +179,7 @@ export function UsersTable({ users }: { users: User[] }) {
                       {user.role}
                     </Badge>
                   </TableCell>
-                  <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

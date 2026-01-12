@@ -95,6 +95,7 @@ export default function Map() {
     }
 
     getPlaces().then((res) => {
+      console.log(res)
       if (res.success && res.data) {
         setPlaces(res.data)
       }
