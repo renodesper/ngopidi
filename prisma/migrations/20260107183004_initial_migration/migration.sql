@@ -1,71 +1,45 @@
--- CreateExtension
+-- Extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "postgis";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 
--- CreateEnum
+-- Enums
 CREATE TYPE "WifiStability" AS ENUM ('poor', 'average', 'good', 'excellent');
-
--- CreateEnum
 CREATE TYPE "WifiPolicy" AS ENUM ('free', 'purchase_required', 'time_limited');
-
--- CreateEnum
 CREATE TYPE "OutletDensity" AS ENUM ('few', 'moderate', 'many');
-
--- CreateEnum
 CREATE TYPE "SeatingType" AS ENUM ('single_table', 'communal_table', 'bar_seating', 'sofa');
-
--- CreateEnum
 CREATE TYPE "TableSize" AS ENUM ('small', 'medium', 'large');
-
--- CreateEnum
 CREATE TYPE "NoiseLevel" AS ENUM ('quiet', 'moderate', 'noisy');
-
--- CreateEnum
 CREATE TYPE "MusicVolume" AS ENUM ('low', 'medium', 'loud');
-
--- CreateEnum
 CREATE TYPE "CrowdLevel" AS ENUM ('empty', 'normal', 'crowded');
-
--- CreateEnum
 CREATE TYPE "StayPolicy" AS ENUM ('no_limit', 'soft_limit', 'explicit_limit');
-
--- CreateEnum
 CREATE TYPE "TemperatureComfort" AS ENUM ('cold', 'comfortable', 'warm');
-
--- CreateEnum
 CREATE TYPE "SmokingArea" AS ENUM ('none', 'separate', 'indoor');
-
--- CreateEnum
 CREATE TYPE "CommonVisitor" AS ENUM ('students', 'remote_workers', 'meetings', 'casual_visitors');
-
--- CreateEnum
 CREATE TYPE "PlaceStatus" AS ENUM ('PENDING', 'SUBMITTED', 'UNVERIFIED', 'VERIFIED_ADMIN', 'VERIFIED_USER', 'REJECTED');
-
--- CreateEnum
 CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'USER');
 
--- CreateTable
+-- Users
 CREATE TABLE "users" (
-    "id" TEXT NOT NULL,
+    "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
     "name" TEXT,
     "email" TEXT,
-    "emailVerified" TIMESTAMP(3),
+    "email_verified" TIMESTAMP(3),
     "image" TEXT,
     "password" TEXT,
     "role" "UserRole" NOT NULL DEFAULT 'USER',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Accounts
 CREATE TABLE "accounts" (
-    "id" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+    "user_id" uuid NOT NULL,
     "type" TEXT NOT NULL,
     "provider" TEXT NOT NULL,
-    "providerAccountId" TEXT NOT NULL,
+    "provider_account_id" TEXT NOT NULL,
     "refresh_token" TEXT,
     "access_token" TEXT,
     "expires_at" INTEGER,
@@ -73,139 +47,129 @@ CREATE TABLE "accounts" (
     "scope" TEXT,
     "id_token" TEXT,
     "session_state" TEXT,
-
     CONSTRAINT "accounts_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Sessions
 CREATE TABLE "sessions" (
-    "id" TEXT NOT NULL,
-    "sessionToken" TEXT NOT NULL,
-    "userId" TEXT NOT NULL,
+    "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+    "session_token" TEXT NOT NULL,
+    "user_id" uuid NOT NULL,
     "expires" TIMESTAMP(3) NOT NULL,
-
     CONSTRAINT "sessions_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Verification Tokens
 CREATE TABLE "verification_tokens" (
     "identifier" TEXT NOT NULL,
     "token" TEXT NOT NULL,
     "expires" TIMESTAMP(3) NOT NULL
 );
 
--- CreateTable
+-- Places
 CREATE TABLE "places" (
-    "id" TEXT NOT NULL,
+    "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
     "name" TEXT NOT NULL,
     "description" TEXT,
     "address" TEXT NOT NULL,
     "latitude" DOUBLE PRECISION NOT NULL,
     "longitude" DOUBLE PRECISION NOT NULL,
     "geo" geography(Point,4326),
-    "priceLevel" INTEGER,
-    "averageDrinkPrice" INTEGER,
-    "minimumSpend" INTEGER,
-    "wifiAvailable" BOOLEAN NOT NULL DEFAULT false,
-    "wifiSpeed" INTEGER,
-    "wifiStability" "WifiStability",
-    "wifiPolicy" "WifiPolicy",
-    "powerOutletsAvailable" BOOLEAN NOT NULL DEFAULT false,
-    "powerOutletDensity" "OutletDensity",
-    "tableSize" "TableSize",
-    "seatingTypes" "SeatingType"[],
-    "noiseLevel" "NoiseLevel",
-    "musicVolume" "MusicVolume",
-    "crowdLevel" "CrowdLevel",
-    "laptopFriendly" BOOLEAN,
-    "stayPolicy" "StayPolicy",
-    "meetingFriendly" BOOLEAN,
-    "callFriendly" BOOLEAN,
-    "workFriendlyScore" DOUBLE PRECISION,
-    "airConditioning" BOOLEAN,
-    "temperatureComfort" "TemperatureComfort",
-    "restroomAvailable" BOOLEAN,
-    "prayerRoomAvailable" BOOLEAN NOT NULL DEFAULT false,
-    "smokingArea" "SmokingArea",
-    "parkingAvailable" BOOLEAN,
-    "openingHours" TEXT,
-    "busyHours" TEXT,
-    "commonVisitors" "CommonVisitor"[],
+    "price_level" INTEGER,
+    "average_drink_price" INTEGER,
+    "minimum_spend" INTEGER,
+    "wifi_available" BOOLEAN NOT NULL DEFAULT false,
+    "wifi_speed" INTEGER,
+    "wifi_stability" "WifiStability",
+    "wifi_policy" "WifiPolicy",
+    "power_outlets_available" BOOLEAN NOT NULL DEFAULT false,
+    "power_outlet_density" "OutletDensity",
+    "table_size" "TableSize",
+    "seating_types" "SeatingType"[],
+    "noise_level" "NoiseLevel",
+    "music_volume" "MusicVolume",
+    "crowd_level" "CrowdLevel",
+    "laptop_friendly" BOOLEAN,
+    "stay_policy" "StayPolicy",
+    "meeting_friendly" BOOLEAN,
+    "call_friendly" BOOLEAN,
+    "work_friendly_score" DOUBLE PRECISION,
+    "air_conditioning" BOOLEAN,
+    "temperature_comfort" "TemperatureComfort",
+    "restroom_available" BOOLEAN,
+    "prayer_room_available" BOOLEAN NOT NULL DEFAULT false,
+    "smoking_area" "SmokingArea",
+    "parking_available" BOOLEAN,
+    "opening_hours" TEXT,
+    "busy_hours" TEXT,
+    "common_visitors" "CommonVisitor"[],
     "status" "PlaceStatus" NOT NULL DEFAULT 'PENDING',
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
     CONSTRAINT "places_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- Place Images
 CREATE TABLE "place_images" (
-    "id" TEXT NOT NULL,
+    "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
     "url" TEXT NOT NULL,
-    "placeId" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
+    "place_id" uuid NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "place_images_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
+-- Indexes
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
-
--- CreateIndex
-CREATE UNIQUE INDEX "accounts_provider_providerAccountId_key" ON "accounts"("provider", "providerAccountId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "sessions_sessionToken_key" ON "sessions"("sessionToken");
-
--- CreateIndex
+CREATE UNIQUE INDEX "accounts_provider_provider_account_id_key" ON "accounts"("provider", "provider_account_id");
+CREATE UNIQUE INDEX "sessions_session_token_key" ON "sessions"("session_token");
 CREATE UNIQUE INDEX "verification_tokens_token_key" ON "verification_tokens"("token");
-
--- CreateIndex
 CREATE UNIQUE INDEX "verification_tokens_identifier_token_key" ON "verification_tokens"("identifier", "token");
 
--- CreateIndex
 CREATE INDEX "places_status_idx" ON "places"("status");
-
--- CreateIndex
-CREATE INDEX "places_laptopFriendly_idx" ON "places"("laptopFriendly");
-
--- CreateIndex
+CREATE INDEX "places_laptop_friendly_idx" ON "places"("laptop_friendly");
 CREATE INDEX "places_latitude_longitude_idx" ON "places"("latitude", "longitude");
+CREATE INDEX "places_wifi_available_power_outlets_available_idx"
+  ON "places"("wifi_available", "power_outlets_available");
+CREATE INDEX "places_noise_level_work_friendly_score_idx"
+  ON "places"("noise_level", "work_friendly_score");
 
--- CreateIndex
-CREATE INDEX "places_wifiAvailable_powerOutletsAvailable_idx" ON "places"("wifiAvailable", "powerOutletsAvailable");
+CREATE INDEX "place_images_place_id_idx" ON "place_images"("place_id");
 
--- CreateIndex
-CREATE INDEX "places_noiseLevel_workFriendlyScore_idx" ON "places"("noiseLevel", "workFriendlyScore");
+-- Foreign Keys
+ALTER TABLE "accounts"
+ADD CONSTRAINT "accounts_user_id_fkey"
+FOREIGN KEY ("user_id") REFERENCES "users"("id")
+ON DELETE CASCADE ON UPDATE CASCADE;
 
--- CreateIndex
-CREATE INDEX "place_images_placeId_idx" ON "place_images"("placeId");
+ALTER TABLE "sessions"
+ADD CONSTRAINT "sessions_user_id_fkey"
+FOREIGN KEY ("user_id") REFERENCES "users"("id")
+ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "accounts" ADD CONSTRAINT "accounts_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "place_images"
+ADD CONSTRAINT "place_images_place_id_fkey"
+FOREIGN KEY ("place_id") REFERENCES "places"("id")
+ON DELETE CASCADE ON UPDATE CASCADE;
 
--- AddForeignKey
-ALTER TABLE "sessions" ADD CONSTRAINT "sessions_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+-- PostGIS Index
+CREATE INDEX idx_places_geo ON "places" USING GIST ("geo");
 
--- AddForeignKey
-ALTER TABLE "place_images" ADD CONSTRAINT "place_images_placeId_fkey" FOREIGN KEY ("placeId") REFERENCES "places"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+-- Trigram Search
+CREATE INDEX "places_name_trgm_idx"
+ON "places" USING GIN ("name" gin_trgm_ops);
 
--- CreateIndex
-CREATE INDEX idx_places_geo ON places USING GIST (geo);
+CREATE INDEX "places_address_trgm_idx"
+ON "places" USING GIN ("address" gin_trgm_ops);
 
--- CreateIndex
-CREATE INDEX "places_name_trgm_idx" ON "places" USING GIN ("name" gin_trgm_ops);
-CREATE INDEX "places_address_trgm_idx" ON "places" USING GIN ("address" gin_trgm_ops);
-
--- CreateTrigger
+-- Geo Trigger
 CREATE OR REPLACE FUNCTION places_set_geo()
 RETURNS trigger LANGUAGE plpgsql AS $$
 BEGIN
   IF NEW.latitude IS NOT NULL AND NEW.longitude IS NOT NULL THEN
-    NEW.geo := ST_SetSRID(ST_MakePoint(
-      NEW.longitude,
-      NEW.latitude
-    ), 4326)::geography;
+    NEW.geo := ST_SetSRID(
+      ST_MakePoint(NEW.longitude, NEW.latitude),
+      4326
+    )::geography;
   ELSE
     NEW.geo := NULL;
   END IF;
@@ -214,5 +178,18 @@ END;
 $$;
 
 CREATE TRIGGER set_places_geo
-BEFORE INSERT OR UPDATE ON places
+BEFORE INSERT OR UPDATE ON "places"
 FOR EACH ROW EXECUTE FUNCTION places_set_geo();
+
+-- Auto updated_at
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS trigger AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_users_updated
+BEFORE UPDATE ON "users"
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();

@@ -9,55 +9,64 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          UserRole  @default(USER)
-  accounts      Account[]
-  sessions      Session[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id             String    @id @default(uuid())
+  name           String?
+  email          String?   @unique
+  email_verified DateTime?
+  image          String?
+  password       String?
+  role           UserRole  @default(USER)
+  accounts       Account[]
+  sessions       Session[]
+  created_at     DateTime @default(now()) @map("created_at")
+  updated_at     DateTime @updatedAt      @map("updated_at")
 
   @@map("users")
 }
 
 model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
+  id                  String @id @default(uuid()) @db.Uuid
+  user_id             String @db.Uuid
+  type                String
+  provider            String
+  provider_account_id String
+  refresh_token       String?
+  access_token        String?
+  expires_at          Int?
+  token_type          String?
+  scope               String?
+  id_token            String?
+  session_state       String?
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt      @map("updated_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@unique([provider, providerAccountId])
+  @@unique([provider, provider_account_id])
   @@map("accounts")
 }
 
+
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String   @id @default(uuid()) @db.Uuid
+  session_token String   @unique
+  user_id       String   @db.Uuid
+  expires       DateTime
+  created_at    DateTime @default(now()) @map("created_at")
+  updated_at    DateTime @updatedAt      @map("updated_at")
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("sessions")
 }
+
 
 model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt      @map("updated_at")
 
   @@unique([identifier, token])
   @@map("verification_tokens")
@@ -163,73 +172,76 @@ model Place {
   geo       Unsupported("geography(Point,4326)")?
 
   // Pricing
-  priceLevel        Int? // 1–5
-  averageDrinkPrice Int? // in local currency (e.g. IDR)
-  minimumSpend      Int?
+  price_level         Int? @map("price_level") // 1–5
+  average_drink_price Int? @map("average_drink_price") // in local currency (e.g. IDR)
+  minimum_spend       Int? @map("minimum_spend")
 
   // Connectivity
-  wifiAvailable Boolean        @default(false)
-  wifiSpeed     Int? // Mbps
-  wifiStability WifiStability?
-  wifiPolicy    WifiPolicy?
+  wifi_available Boolean        @default(false) @map("wifi_available")
+  wifi_speed     Int? @map("wifi_speed") // Mbps
+  wifi_stability WifiStability? @map("wifi_stability")
+  wifi_policy    WifiPolicy? @map("wifi_policy")
 
   // Power & seating
-  powerOutletsAvailable Boolean        @default(false)
-  powerOutletDensity    OutletDensity?
-  tableSize             TableSize?
-  seatingTypes          SeatingType[]
+  power_outlets_available Boolean        @default(false) @map("power_outlets_available")
+  power_outlet_density    OutletDensity? @map("power_outlet_density")
+  table_size              TableSize? @map("table_size")
+  seating_types           SeatingType[] @map("seating_types")
 
   // Environment
-  noiseLevel  NoiseLevel?
-  musicVolume MusicVolume?
-  crowdLevel  CrowdLevel?
+  noise_level  NoiseLevel? @map("noise_level")
+  music_volume MusicVolume? @map("music_volume")
+  crowd_level  CrowdLevel? @map("crowd_level")
 
   // Work suitability
-  laptopFriendly    Boolean?
-  stayPolicy        StayPolicy?
-  meetingFriendly   Boolean?
-  callFriendly      Boolean?
-  workFriendlyScore Float? // 1.0 – 5.0
+  laptop_friendly     Boolean? @map("laptop_friendly")
+  stay_policy         StayPolicy? @map("stay_policy")
+  meeting_friendly    Boolean? @map("meeting_friendly")
+  call_friendly       Boolean? @map("call_friendly")
+  work_friendly_score Float? // 1.0 – 5.0
 
   // Facilities
-  airConditioning     Boolean?
-  temperatureComfort  TemperatureComfort?
-  restroomAvailable   Boolean?
-  prayerRoomAvailable Boolean            @default(false)
-  smokingArea         SmokingArea?
-  parkingAvailable    Boolean?
+  air_conditioning      Boolean? @map("air_conditioning")
+  temperature_comfort   TemperatureComfort? @map("temperature_comfort")
+  restroom_available    Boolean? @map("restroom_available")
+  prayer_room_available Boolean            @default(false)
+  smoking_area          SmokingArea? @map("smoking_area")
+  parking_available     Boolean? @map("parking_available")
 
   // Meta
-  openingHours   String? // keep flexible (JSON/string)
-  busyHours      String? // e.g. JSON time ranges
-  commonVisitors CommonVisitor[]
+  opening_hours   String? @map("opening_hours") // keep flexible (JSON/string)
+  busy_hours      String? @map("busy_hours") // e.g. JSON time ranges
+  common_visitors CommonVisitor[] @map("common_visitors")
 
   status PlaceStatus @default(PENDING)
 
   images PlaceImage[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt      @map("updated_at")
 
   @@index([status])
-  @@index([laptopFriendly])
+  @@index([laptop_friendly])
   @@index([latitude, longitude])
-  @@index([wifiAvailable, powerOutletsAvailable])
-  @@index([noiseLevel, workFriendlyScore])
+  @@index([wifi_available, power_outlets_available])
+  @@index([noise_level, work_friendly_score])
   @@map("places")
 }
 
 model PlaceImage {
-  id      String @id @default(uuid())
-  url     String
-  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
-  placeId String
+  id       String @id @default(uuid()) @db.Uuid
+  url      String
+  place_id String @db.Uuid
 
-  createdAt DateTime @default(now())
-  
-  @@index([placeId])
+  place Place @relation(fields: [place_id], references: [id], onDelete: Cascade)
+
+  created_at DateTime @default(now()) @map("created_at")
+  updated_at DateTime @updatedAt      @map("updated_at")
+
+  @@index([place_id])
   @@map("place_images")
 }
+
 
 enum UserRole {
   ADMIN
