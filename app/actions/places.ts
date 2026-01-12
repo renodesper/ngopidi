@@ -22,10 +22,68 @@ export async function submitPlace(data: Prisma.PlaceCreateInput) {
   }
 }
 
-export async function getPlaces() {
+export async function getPlaces(lat?: number, lng?: number, radiusKm: number = 1) {
   try {
+    let ids: string[] | null = null;
+
+    if (lat !== undefined && lng !== undefined) {
+      const radiusMeters = radiusKm * 1000;
+      // Using raw SQL to perform spatial distance check
+      const nearbyPlaces = await prisma.$queryRaw<any[]>`
+        SELECT id FROM places 
+        WHERE ST_DWithin(
+          geo, 
+          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, 
+          ${radiusMeters}
+        )
+      `;
+      ids = nearbyPlaces.map(p => p.id);
+
+      if (ids.length === 0) return { success: true, data: [] };
+    }
+
     const places = await prisma.place.findMany({
-      // include: { images: true },
+      where: ids ? { id: { in: ids } } : {},
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        address: true,
+        latitude: true,
+        longitude: true,
+        status: true,
+        price_level: true,
+        average_drink_price: true,
+        minimum_spend: true,
+        wifi_available: true,
+        wifi_speed: true,
+        wifi_stability: true,
+        wifi_policy: true,
+        power_outlets_available: true,
+        power_outlet_density: true,
+        table_size: true,
+        seating_types: true,
+        noise_level: true,
+        music_volume: true,
+        crowd_level: true,
+        laptop_friendly: true,
+        stay_policy: true,
+        meeting_friendly: true,
+        call_friendly: true,
+        work_friendly_score: true,
+        air_conditioning: true,
+        temperature_comfort: true,
+        restroom_available: true,
+        prayer_room_available: true,
+        smoking_area: true,
+        parking_available: true,
+        opening_hours: true,
+        busy_hours: true,
+        common_visitors: true,
+        created_at: true,
+        updated_at: true,
+        // images: true,
+      },
       orderBy: { created_at: "desc" },
     })
     return { success: true, data: places }
@@ -39,7 +97,46 @@ export async function getPlaceById(id: string) {
   try {
     const place = await prisma.place.findUnique({
       where: { id },
-      // include: { images: true },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        address: true,
+        latitude: true,
+        longitude: true,
+        status: true,
+        price_level: true,
+        average_drink_price: true,
+        minimum_spend: true,
+        wifi_available: true,
+        wifi_speed: true,
+        wifi_stability: true,
+        wifi_policy: true,
+        power_outlets_available: true,
+        power_outlet_density: true,
+        table_size: true,
+        seating_types: true,
+        noise_level: true,
+        music_volume: true,
+        crowd_level: true,
+        laptop_friendly: true,
+        stay_policy: true,
+        meeting_friendly: true,
+        call_friendly: true,
+        work_friendly_score: true,
+        air_conditioning: true,
+        temperature_comfort: true,
+        restroom_available: true,
+        prayer_room_available: true,
+        smoking_area: true,
+        parking_available: true,
+        opening_hours: true,
+        busy_hours: true,
+        common_visitors: true,
+        created_at: true,
+        updated_at: true,
+        // images: true,
+      }
     })
     return { success: true, data: place }
   } catch (error) {
