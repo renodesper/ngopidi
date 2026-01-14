@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import Link from 'next/link'
 
 export default function LoginPage() {
   const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined)
@@ -27,16 +28,22 @@ export default function LoginPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" required />
+              <Input id="password" name="password" type="password" placeholder="password" required />
             </div>
             {errorMessage && (
               <div className="text-red-500 text-sm">{errorMessage}</div>
             )}
           </CardContent>
-          <CardFooter>
-            <Button className="w-full" type="submit" disabled={isPending}>
+          <CardFooter className="flex flex-col gap-4 mt-4">
+            <Button className="w-full cursor-pointer" type="submit" disabled={isPending}>
               {isPending ? "Logging in..." : "Login"}
             </Button>
+            <p className="text-sm text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <Link href="/register" className="text-primary hover:underline">
+                Register
+              </Link>
+            </p>
           </CardFooter>
         </form>
       </Card>

@@ -5,15 +5,19 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Users, MapPin, LayoutDashboard } from 'lucide-react'
 import { logout } from '@/app/actions/auth'
+import { Button } from "@/components/ui/button"
+import { SheetClose } from "@/components/ui/sheet"
 
-const navItems = [
-  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-  { href: '/dashboard/places', label: 'Places', icon: MapPin },
-  { href: '/dashboard/users', label: 'Users', icon: Users },
+const allNavItems = [
+  { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, adminOnly: false },
+  { href: '/dashboard/places', label: 'Places', icon: MapPin, adminOnly: false },
+  { href: '/dashboard/users', label: 'Users', icon: Users, adminOnly: true },
 ]
 
-export function Sidebar({ userEmail }: { userEmail: string }) {
+export function Sidebar({ userEmail, userRole, isMobile }: { userEmail: string; userRole: string; isMobile?: boolean }) {
   const pathname = usePathname()
+
+  const navItems = allNavItems.filter(item => !item.adminOnly || userRole === 'ADMIN')
 
   return (
     <div className="flex flex-col h-full">
@@ -25,12 +29,11 @@ export function Sidebar({ userEmail }: { userEmail: string }) {
       <nav className="flex-1 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href || 
+          const isActive = pathname === item.href ||
             (item.href !== '/dashboard' && pathname.startsWith(item.href))
-          
-          return (
+
+          const content = (
             <Link
-              key={item.href}
               href={item.href}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
@@ -43,13 +46,21 @@ export function Sidebar({ userEmail }: { userEmail: string }) {
               {item.label}
             </Link>
           )
+
+          return isMobile ? (
+            <SheetClose asChild key={item.href}>
+              {content}
+            </SheetClose>
+          ) : (
+            <div key={item.href}>{content}</div>
+          )
         })}
       </nav>
 
       <form action={logout} className="mt-auto pt-4 border-t">
-        <button className="text-red-500 hover:underline text-sm w-full text-left">
+        <Button variant="secondary" className="w-full text-left cursor-pointer" type="submit">
           Sign Out
-        </button>
+        </Button>
       </form>
     </div>
   )

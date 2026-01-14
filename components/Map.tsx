@@ -1,6 +1,6 @@
 'use client'
 
-import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl, useMapEvents } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { divIcon } from 'leaflet'
 import { useEffect, useState, useRef } from 'react'
@@ -10,6 +10,7 @@ import { Navigation, Search, X, Loader2, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import PlaceDetails from './PlaceDetails'
+import { DEFAULT_LOCATION } from '@/lib/constants'
 
 const createCustomIcon = (isSelected: boolean) => divIcon({
   html: `<div class="group relative flex items-center justify-center">
@@ -58,10 +59,27 @@ function MapController({ center }: { center: [number, number] }) {
   return null
 }
 
+function MapEvents({ onMapChange }: { onMapChange: (center: [number, number], radius: number) => void }) {
+  const map = useMapEvents({
+    moveend: () => {
+      const center = map.getCenter()
+      const bounds = map.getBounds()
+      const ne = bounds.getNorthEast()
+
+      // Calculate radius in kilometers (distance from center to corner)
+      const radiusKm = (center.distanceTo(ne) / 1000)
+      onMapChange([center.lat, center.lng], radiusKm)
+    }
+  })
+  return null
+}
+
 export default function Map() {
   const [places, setPlaces] = useState<any[]>([])
-  const [userLocation, setUserLocation] = useState<[number, number]>([-6.2088, 106.8456])
+  const [userLocation, setUserLocation] = useState<[number, number]>(DEFAULT_LOCATION)
+  const [currentView, setCurrentView] = useState<{ center: [number, number], radius: number } | null>(null)
   const [selectedPlace, setSelectedPlace] = useState<any | null>(null)
+
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -83,23 +101,42 @@ export default function Map() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation([position.coords.latitude, position.coords.longitude])
+          const coords: [number, number] = [position.coords.latitude, position.coords.longitude]
+          setUserLocation(coords)
+          // Initialize view with user location and a default 5km radius
+          setCurrentView({ center: coords, radius: 5 })
         },
         (error) => {
           console.error("Error getting location:", error)
-          setUserLocation([-6.2088, 106.8456])
+          setUserLocation(DEFAULT_LOCATION)
+          setCurrentView({ center: DEFAULT_LOCATION, radius: 5 })
         }
       )
     } else {
-      setUserLocation([-6.2088, 106.8456])
+      setUserLocation(DEFAULT_LOCATION)
+      setCurrentView({ center: DEFAULT_LOCATION, radius: 5 })
     }
-
-    getPlaces().then((res) => {
-      if (res.success && res.data) {
-        setPlaces(res.data)
-      }
-    })
   }, [])
+
+  useEffect(() => {
+    if (!currentView) return
+
+    const timer = setTimeout(() => {
+      const { center, radius } = currentView
+      getPlaces(center[0], center[1], radius, [
+        'UNVERIFIED',
+        'VERIFIED_ADMIN',
+        'VERIFIED_USER'
+      ] as any).then((res) => {
+        console.log(`Fetched places within ${radius.toFixed(2)}km:`, res)
+        if (res.success && res.data) {
+          setPlaces(res.data)
+        }
+      })
+    }, 300) // Simple debouncing
+
+    return () => clearTimeout(timer)
+  }, [currentView])
 
   const handleLocate = () => {
     if (navigator.geolocation) {
@@ -212,6 +249,7 @@ export default function Map() {
         />
         <ZoomControl position="bottomleft" />
         <MapController center={userLocation} />
+        <MapEvents onMapChange={(center, radius) => setCurrentView({ center, radius })} />
 
         <Marker position={userLocation} icon={userIcon} />
 
@@ -229,7 +267,7 @@ export default function Map() {
         ))}
       </MapContainer>
 
-      <div className="absolute bottom-[92px] right-6 z-[400]">
+      <div className="absolute bottom-6 right-6 z-[400]">
         <Button
           variant="outline"
           size="icon"

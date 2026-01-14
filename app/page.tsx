@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { Button } from "@/components/ui/button"
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
+import { useSession } from 'next-auth/react'
 
 const Map = dynamic(() => import('@/components/Map'), {
   ssr: false,
@@ -11,6 +12,7 @@ const Map = dynamic(() => import('@/components/Map'), {
 })
 
 export default function Home() {
+  const { data: session } = useSession()
   return (
     <main className="relative h-screen w-full overflow-hidden">
       <Map />
@@ -24,21 +26,17 @@ export default function Home() {
           </div>
           <div className="h-8 w-[1px] bg-border/50 mx-2" />
           <nav className="flex gap-1">
-            <Link href="/login">
-              <Button variant="ghost" size="sm" className="rounded-full hover:bg-primary/10">Login</Button>
-            </Link>
+            {session?.user ? (
+              <Link href={(session.user as any).role === 'ADMIN' ? '/admin' : '/dashboard'}>
+                <Button variant="ghost" size="sm" className="rounded-full hover:bg-primary/10 font-medium text-amber-600">Dashboard</Button>
+              </Link>
+            ) : (
+              <Link href="/login">
+                <Button variant="ghost" size="sm" className="rounded-full hover:bg-primary/10">Login</Button>
+              </Link>
+            )}
           </nav>
         </div>
-      </div>
-
-      {/* Floating Action Buttons */}
-      <div className="absolute bottom-6 right-6 z-[400] flex flex-col gap-3">
-        <Button
-          size="icon"
-          className="h-14 w-14 rounded-full shadow-2xl shadow-amber-500/20 hover:scale-110 transition-transform bg-gradient-to-br from-amber-500 to-amber-700 text-white border-none"
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
       </div>
 
       {/* Brand Watermark */}
