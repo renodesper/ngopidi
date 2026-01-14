@@ -17,7 +17,7 @@ export function AdminSidebar({ userEmail }: { userEmail: string }) {
 
     return (
         <div className="flex flex-col h-full">
-            <div className="mb-8">
+            <div className="mb-8 hidden lg:block">
                 <h1 className="text-xl font-bold">Admin Panel</h1>
                 <p className="text-sm text-muted-foreground mt-1">{userEmail}</p>
             </div>

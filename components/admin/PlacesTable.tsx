@@ -247,45 +247,53 @@ export function PlacesTable({ places }: { places: Place[] }) {
     }))
   }
 
-  return (
-    <>
-      <div className="flex justify-end mb-4">
-        <Dialog open={createOpen} onOpenChange={open => { setCreateOpen(open); if (open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button className="gap-2"><Plus className="h-4 w-4" />Add Place</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0">
-            <DialogHeader className="p-6 pb-0">
-              <DialogTitle className="text-xl">Add New Place</DialogTitle>
-              <DialogDescription>Add a work-from-cafe friendly location</DialogDescription>
-            </DialogHeader>
-            <div className="px-6 py-4">
-              <FormContent formData={formData} setFormData={setFormData} activeTab={activeTab} setActiveTab={setActiveTab} toggleSeatingType={toggleSeatingType} toggleCommonVisitor={toggleCommonVisitor} />
-            </div>
-            <DialogFooter className="p-6 pt-4 border-t bg-muted/20">
-              <Button variant="ghost" onClick={() => setCreateOpen(false)}>Cancel</Button>
-              <Button
-                onClick={handleSubmitCreate}
-                disabled={loading || !formData.name || !formData.address || !formData.latitude || !formData.longitude}
-                className="min-w-[120px]"
-              >
-                {loading ? "Creating..." : "Create Place"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+  const PlaceCard = ({ place }: { place: Place }) => (
+    <div className="bg-card border rounded-xl p-4 space-y-3 shadow-sm">
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="font-bold text-base">{place.name}</h3>
+          <p className="text-xs text-muted-foreground line-clamp-1">{place.address}</p>
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleEdit(place)}><Pencil className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleDelete(place)} className="text-destructive"><Trash className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      <div className="rounded-xl border bg-card">
+      <div className="flex flex-wrap gap-2 items-center">
+        {getStatusBadge(place.status)}
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
+          <Wifi className="h-3 w-3" />
+          {place.wifi_available ? (place.wifi_speed ? `${place.wifi_speed} Mbps` : "Yes") : "No"}
+        </div>
+        <div className="flex items-center gap-1 text-primary text-xs font-semibold bg-primary/10 px-2 py-1 rounded-md">
+          {place.price_level ? "$".repeat(place.price_level) : "—"}
+        </div>
+      </div>
+    </div>
+  )
+
+  return (
+    <>
+      <div className="hidden lg:block h-2" />
+
+      <div className="hidden md:block rounded-xl border bg-card overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="font-semibold">Name</TableHead>
+            <TableRow className="hover:bg-transparent border-none">
+              <TableHead className="font-semibold px-6">Name</TableHead>
               <TableHead className="font-semibold">Address</TableHead>
               <TableHead className="font-semibold">Status</TableHead>
               <TableHead className="font-semibold">WiFi</TableHead>
               <TableHead className="font-semibold">Price</TableHead>
-              <TableHead className="w-[70px]"></TableHead>
+              <TableHead className="w-[70px] pr-6"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -316,9 +324,20 @@ export function PlacesTable({ places }: { places: Place[] }) {
         </Table>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        {places.length === 0 ? (
+          <div className="text-center text-muted-foreground py-12 bg-card border rounded-xl">
+            No places found. Add your first location!
+          </div>
+        ) : (
+          places.map(place => <PlaceCard key={place.id} place={place} />)
+        )}
+      </div>
+
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0">
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto p-0 rounded-2xl">
           <DialogHeader className="p-6 pb-0">
             <DialogTitle className="text-xl">Edit Place</DialogTitle>
             <DialogDescription>Update place details</DialogDescription>
@@ -346,6 +365,38 @@ export function PlacesTable({ places }: { places: Place[] }) {
             <Button variant="ghost" onClick={() => setDeleteOpen(false)}>Cancel</Button>
             <Button variant="destructive" onClick={confirmDelete} disabled={loading}>
               {loading ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Floating Action Button (FAB) */}
+      <Dialog open={createOpen} onOpenChange={open => { setCreateOpen(open); if (open) resetForm(); }}>
+        <DialogTrigger asChild>
+          <Button
+            size="icon"
+            className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-2xl z-50 transition-all duration-300 hover:scale-110 active:scale-95 bg-primary text-primary-foreground border-4 border-background"
+          >
+            <Plus className="h-7 w-7" />
+            <span className="sr-only">Add Place</span>
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto p-0 rounded-2xl">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="text-xl">Add New Place</DialogTitle>
+            <DialogDescription>Add a work-from-cafe friendly location</DialogDescription>
+          </DialogHeader>
+          <div className="px-6 py-4">
+            <FormContent formData={formData} setFormData={setFormData} activeTab={activeTab} setActiveTab={setActiveTab} toggleSeatingType={toggleSeatingType} toggleCommonVisitor={toggleCommonVisitor} />
+          </div>
+          <DialogFooter className="p-6 pt-4 border-t bg-muted/20">
+            <Button variant="ghost" onClick={() => setCreateOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handleSubmitCreate}
+              disabled={loading || !formData.name || !formData.address || !formData.latitude || !formData.longitude}
+              className="min-w-[120px]"
+            >
+              {loading ? "Creating..." : "Create Place"}
             </Button>
           </DialogFooter>
         </DialogContent>

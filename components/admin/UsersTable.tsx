@@ -47,6 +47,37 @@ interface User {
   created_at: Date
 }
 
+const UserCard = ({ user, onEdit, onDelete }: { user: User; onEdit: (u: User) => void; onDelete: (u: User) => void }) => (
+  <div className="bg-card border rounded-xl p-4 space-y-3 shadow-sm text-left">
+    <div className="flex justify-between items-start">
+      <div>
+        <h3 className="font-bold text-base">{user.name || "No Name"}</h3>
+        <p className="text-xs text-muted-foreground">{user.email}</p>
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => onEdit(user)}><Pencil className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onDelete(user)} className="text-destructive"><Trash className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+
+    <div className="flex flex-wrap gap-2 items-center">
+      <Badge variant={user.role === "ADMIN" ? "default" : "secondary"} className="text-[10px] uppercase tracking-wider">
+        {user.role}
+      </Badge>
+      <span className="text-[11px] text-muted-foreground">
+        Joined {new Date(user.created_at).toLocaleDateString()}
+      </span>
+    </div>
+  </div>
+)
+
 export function UsersTable({ users }: { users: User[] }) {
   const [createOpen, setCreateOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
@@ -100,79 +131,30 @@ export function UsersTable({ users }: { users: User[] }) {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
-        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add User
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New User</DialogTitle>
-              <DialogDescription>Add a new user to the system.</DialogDescription>
-            </DialogHeader>
-            <form action={handleSubmitCreate} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="create-name">Name</Label>
-                <Input id="create-name" name="name" placeholder="John Doe" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="create-email">Email</Label>
-                <Input id="create-email" name="email" type="email" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="create-password">Password</Label>
-                <Input id="create-password" name="password" type="password" required minLength={6} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="create-role">Role</Label>
-                <Select name="role" defaultValue="USER">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USER">User</SelectItem>
-                    <SelectItem value="ADMIN">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setCreateOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Creating..." : "Create User"}
-                </Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+      <div className="hidden lg:block h-2" />
 
-      <div className="rounded-md border">
+      <div className="hidden md:block rounded-xl border bg-card overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead className="w-[70px]">Actions</TableHead>
+            <TableRow className="hover:bg-transparent border-none">
+              <TableHead className="px-6 font-semibold">Name</TableHead>
+              <TableHead className="font-semibold">Email</TableHead>
+              <TableHead className="font-semibold">Role</TableHead>
+              <TableHead className="font-semibold">Created</TableHead>
+              <TableHead className="w-[70px] pr-6 text-right font-semibold">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
                   No users found.
                 </TableCell>
               </TableRow>
             ) : (
               users.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name || "-"}</TableCell>
+                <TableRow key={user.id} className="border-border/50">
+                  <TableCell className="font-medium px-6">{user.name || "-"}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
                     <Badge variant={user.role === "ADMIN" ? "default" : "secondary"}>
@@ -180,10 +162,10 @@ export function UsersTable({ users }: { users: User[] }) {
                     </Badge>
                   </TableCell>
                   <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
-                  <TableCell>
+                  <TableCell className="text-right pr-6">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -192,10 +174,7 @@ export function UsersTable({ users }: { users: User[] }) {
                           <Pencil className="mr-2 h-4 w-4" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(user)}
-                          className="text-destructive"
-                        >
+                        <DropdownMenuItem onClick={() => handleDelete(user)} className="text-destructive">
                           <Trash className="mr-2 h-4 w-4" />
                           Delete
                         </DropdownMenuItem>
@@ -209,9 +188,22 @@ export function UsersTable({ users }: { users: User[] }) {
         </Table>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-4">
+        {users.length === 0 ? (
+          <div className="text-center text-muted-foreground py-12 bg-card border rounded-xl shadow-sm">
+            No users found.
+          </div>
+        ) : (
+          users.map(user => (
+            <UserCard key={user.id} user={user} onEdit={handleEdit} onDelete={handleDelete} />
+          ))
+        )}
+      </div>
+
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md w-[95vw] rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>Update the user details below.</DialogDescription>
@@ -241,11 +233,11 @@ export function UsersTable({ users }: { users: User[] }) {
                 </SelectContent>
               </Select>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="ghost" onClick={() => setEditOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading} className="min-w-[100px]">
                 {loading ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
@@ -255,21 +247,74 @@ export function UsersTable({ users }: { users: User[] }) {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md w-[95vw] rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle>Delete User</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete "{selectedUser?.email}"? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
+          <DialogFooter className="pt-4">
+            <Button variant="ghost" onClick={() => setDeleteOpen(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete} disabled={loading}>
+            <Button variant="destructive" onClick={confirmDelete} disabled={loading} className="min-w-[100px]">
               {loading ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Floating Action Button (FAB) */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogTrigger asChild>
+          <Button
+            size="icon"
+            className="fixed bottom-8 right-8 h-14 w-14 rounded-full shadow-2xl z-50 transition-all duration-300 hover:scale-110 active:scale-95 bg-primary text-primary-foreground border-4 border-background"
+          >
+            <Plus className="h-7 w-7" />
+            <span className="sr-only">Add User</span>
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-md w-[95vw] rounded-2xl p-6">
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+            <DialogDescription>Add a new user to the system.</DialogDescription>
+          </DialogHeader>
+          <form action={handleSubmitCreate} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="create-name">Name</Label>
+              <Input id="create-name" name="name" placeholder="John Doe" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-email">Email</Label>
+              <Input id="create-email" name="email" type="email" required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-password">Password</Label>
+              <Input id="create-password" name="password" type="password" required minLength={6} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="create-role">Role</Label>
+              <Select name="role" defaultValue="USER">
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USER">User</SelectItem>
+                  <SelectItem value="ADMIN">Admin</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter className="pt-4">
+              <Button type="button" variant="ghost" onClick={() => setCreateOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading} className="min-w-[100px]">
+                {loading ? "Creating..." : "Create User"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </>

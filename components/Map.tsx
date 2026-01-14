@@ -124,7 +124,11 @@ export default function Map() {
 
     const timer = setTimeout(() => {
       const { center, radius } = currentView
-      getPlaces(center[0], center[1], radius).then((res) => {
+      getPlaces(center[0], center[1], radius, [
+        'UNVERIFIED',
+        'VERIFIED_ADMIN',
+        'VERIFIED_USER'
+      ] as any).then((res) => {
         console.log(`Fetched places within ${radius.toFixed(2)}km:`, res)
         if (res.success && res.data) {
           setPlaces(res.data)

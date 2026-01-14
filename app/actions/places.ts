@@ -5,8 +5,6 @@ import { PlaceStatus, Prisma } from "@prisma/client"
 import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
 
-// --- Public Actions ---
-
 export async function submitPlace(data: Prisma.PlaceCreateInput) {
   try {
     const place = await prisma.place.create({
@@ -22,7 +20,7 @@ export async function submitPlace(data: Prisma.PlaceCreateInput) {
   }
 }
 
-export async function getPlaces(lat?: number, lng?: number, radiusKm: number = 1) {
+export async function getPlaces(lat?: number, lng?: number, radiusKm: number = 1, statuses?: PlaceStatus[]) {
   try {
     let ids: string[] | null = null;
 
@@ -42,8 +40,12 @@ export async function getPlaces(lat?: number, lng?: number, radiusKm: number = 1
       if (ids.length === 0) return { success: true, data: [] };
     }
 
+    const where: Prisma.PlaceWhereInput = {}
+    if (ids) where.id = { in: ids }
+    if (statuses && statuses.length > 0) where.status = { in: statuses }
+
     const places = await prisma.place.findMany({
-      where: ids ? { id: { in: ids } } : {},
+      where,
       select: {
         id: true,
         name: true,

@@ -60,9 +60,19 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center gap-2 flex-wrap">
-                                <Badge variant={place.status === "VERIFIED_ADMIN" ? "default" : "secondary"} className="rounded-full">
-                                    {place.status}
-                                </Badge>
+                                {place.status === "VERIFIED_ADMIN" ? (
+                                    <Badge className="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-full px-3">
+                                        VERIFIED
+                                    </Badge>
+                                ) : place.status === "VERIFIED_USER" ? (
+                                    <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white border-none rounded-full px-3">
+                                        VERIFIED
+                                    </Badge>
+                                ) : (
+                                    <Badge variant="secondary" className="rounded-full px-3">
+                                        {place.status}
+                                    </Badge>
+                                )}
                                 {place.price_level > 0 && (
                                     <Badge variant="outline" className="rounded-full">
                                         {"$".repeat(place.price_level)}
