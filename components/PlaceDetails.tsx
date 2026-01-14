@@ -22,6 +22,8 @@ import {
     Moon
 } from "lucide-react"
 
+import { useEffect, useState, useRef, useCallback } from "react"
+
 interface PlaceDetailsProps {
     place: any
     onClose: () => void
@@ -63,14 +65,14 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
     )
 
     return (
-        <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 sm:p-6">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative w-full max-w-4xl max-h-[90vh] glass-card overflow-hidden flex flex-col animate-in zoom-in-95 slide-in-from-bottom-4 duration-500">
+            <div className="relative w-full max-w-4xl max-h-[90vh] glass-card overflow-hidden flex flex-col">
                 {/* Header Section */}
                 <div className="p-6 sm:p-8 border-b border-border/50 flex flex-col gap-4">
                     <div className="flex items-start justify-between gap-4">
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2 flex-wrap">
                                 {place.status === "VERIFIED_ADMIN" ? (
                                     <Badge className="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-full px-3">
@@ -86,8 +88,8 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                                     </Badge>
                                 )}
                                 {place.price_level > 0 && (
-                                    <Badge variant="outline" className="rounded-full">
-                                        {"$".repeat(place.price_level)}
+                                    <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-100 border-emerald-200 dark:border-emerald-800 rounded-full px-3 font-semibold tracking-wide">
+                                        {"$".repeat(Math.min(place.price_level, 5))}
                                     </Badge>
                                 )}
                                 {place.work_friendly_score && (

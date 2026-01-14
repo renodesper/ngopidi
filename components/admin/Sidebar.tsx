@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { Users, MapPin, LayoutDashboard } from 'lucide-react'
 import { logout } from '@/app/actions/auth'
 import { Button } from "@/components/ui/button"
+import { SheetClose } from "@/components/ui/sheet"
 
 const allNavItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, adminOnly: false },
@@ -13,7 +14,7 @@ const allNavItems = [
   { href: '/dashboard/users', label: 'Users', icon: Users, adminOnly: true },
 ]
 
-export function Sidebar({ userEmail, userRole }: { userEmail: string; userRole: string }) {
+export function Sidebar({ userEmail, userRole, isMobile }: { userEmail: string; userRole: string; isMobile?: boolean }) {
   const pathname = usePathname()
 
   const navItems = allNavItems.filter(item => !item.adminOnly || userRole === 'ADMIN')
@@ -31,9 +32,8 @@ export function Sidebar({ userEmail, userRole }: { userEmail: string; userRole: 
           const isActive = pathname === item.href ||
             (item.href !== '/dashboard' && pathname.startsWith(item.href))
 
-          return (
+          const content = (
             <Link
-              key={item.href}
               href={item.href}
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
@@ -45,6 +45,14 @@ export function Sidebar({ userEmail, userRole }: { userEmail: string; userRole: 
               <Icon className="h-4 w-4" />
               {item.label}
             </Link>
+          )
+
+          return isMobile ? (
+            <SheetClose asChild key={item.href}>
+              {content}
+            </SheetClose>
+          ) : (
+            <div key={item.href}>{content}</div>
           )
         })}
       </nav>

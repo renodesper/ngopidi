@@ -10,6 +10,7 @@ import { Navigation, Search, X, Loader2, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import PlaceDetails from './PlaceDetails'
+import { DEFAULT_LOCATION } from '@/lib/constants'
 
 const createCustomIcon = (isSelected: boolean) => divIcon({
   html: `<div class="group relative flex items-center justify-center">
@@ -75,7 +76,7 @@ function MapEvents({ onMapChange }: { onMapChange: (center: [number, number], ra
 
 export default function Map() {
   const [places, setPlaces] = useState<any[]>([])
-  const [userLocation, setUserLocation] = useState<[number, number]>([-6.2088, 106.8456])
+  const [userLocation, setUserLocation] = useState<[number, number]>(DEFAULT_LOCATION)
   const [currentView, setCurrentView] = useState<{ center: [number, number], radius: number } | null>(null)
   const [selectedPlace, setSelectedPlace] = useState<any | null>(null)
 
@@ -107,15 +108,13 @@ export default function Map() {
         },
         (error) => {
           console.error("Error getting location:", error)
-          const defaultCoords: [number, number] = [-6.2088, 106.8456]
-          setUserLocation(defaultCoords)
-          setCurrentView({ center: defaultCoords, radius: 5 })
+          setUserLocation(DEFAULT_LOCATION)
+          setCurrentView({ center: DEFAULT_LOCATION, radius: 5 })
         }
       )
     } else {
-      const defaultCoords: [number, number] = [-6.2088, 106.8456]
-      setUserLocation(defaultCoords)
-      setCurrentView({ center: defaultCoords, radius: 5 })
+      setUserLocation(DEFAULT_LOCATION)
+      setCurrentView({ center: DEFAULT_LOCATION, radius: 5 })
     }
   }, [])
 
@@ -268,7 +267,7 @@ export default function Map() {
         ))}
       </MapContainer>
 
-      <div className="absolute bottom-[92px] right-6 z-[400]">
+      <div className="absolute bottom-6 right-6 z-[400]">
         <Button
           variant="outline"
           size="icon"

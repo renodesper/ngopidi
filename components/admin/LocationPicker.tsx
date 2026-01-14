@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Search, MapPin, Loader2, X } from 'lucide-react'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { DEFAULT_LOCATION } from '@/lib/constants'
 
 // Fix for default marker icons in Leaflet with Next.js
 const defaultIcon = L.icon({
@@ -40,8 +41,8 @@ interface LocationPickerProps {
 }
 
 export default function LocationPicker({
-    initialLat = -6.2088,
-    initialLng = 106.8456,
+    initialLat = DEFAULT_LOCATION[0],
+    initialLng = DEFAULT_LOCATION[1],
     onLocationSelect
 }: LocationPickerProps) {
     const [position, setPosition] = useState<[number, number]>([initialLat, initialLng])
@@ -53,8 +54,8 @@ export default function LocationPicker({
 
     // Update internal position if initial props change (e.g. when editing different places)
     useEffect(() => {
-        // If we're using the default Jakarta coordinates, try to get user's actual location
-        const isDefault = initialLat === -6.2088 && initialLng === 106.8456
+        // If we're using the default coordinates, try to get user's actual location
+        const isDefault = initialLat === DEFAULT_LOCATION[0] && initialLng === DEFAULT_LOCATION[1]
 
         if (isDefault && navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(

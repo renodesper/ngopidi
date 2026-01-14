@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { Users, MapPin, LayoutDashboard } from 'lucide-react'
 import { logout } from '@/app/actions/auth'
 import { Button } from "@/components/ui/button"
+import { SheetClose } from "@/components/ui/sheet"
 
 const navItems = [
     { href: '/admin', label: 'Overview', icon: LayoutDashboard },
@@ -13,7 +14,7 @@ const navItems = [
     { href: '/admin/users', label: 'Users', icon: Users },
 ]
 
-export function AdminSidebar({ userEmail }: { userEmail: string }) {
+export function AdminSidebar({ userEmail, isMobile }: { userEmail: string; isMobile?: boolean }) {
     const pathname = usePathname()
 
     return (
@@ -29,9 +30,8 @@ export function AdminSidebar({ userEmail }: { userEmail: string }) {
                     const isActive = pathname === item.href ||
                         (item.href !== '/admin' && pathname.startsWith(item.href))
 
-                    return (
+                    const content = (
                         <Link
-                            key={item.href}
                             href={item.href}
                             className={cn(
                                 'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
@@ -43,6 +43,14 @@ export function AdminSidebar({ userEmail }: { userEmail: string }) {
                             <Icon className="h-4 w-4" />
                             {item.label}
                         </Link>
+                    )
+
+                    return isMobile ? (
+                        <SheetClose asChild key={item.href}>
+                            {content}
+                        </SheetClose>
+                    ) : (
+                        <div key={item.href}>{content}</div>
                     )
                 })}
             </nav>

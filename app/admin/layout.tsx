@@ -42,7 +42,7 @@ export default async function AdminLayout({
                                     <SheetDescription>{session.user.email}</SheetDescription>
                                 </SheetHeader>
                                 <div className="mt-4 h-full">
-                                    <AdminSidebar userEmail={session.user.email || ""} />
+                                    <AdminSidebar userEmail={session.user.email || ""} isMobile={true} />
                                 </div>
                             </SheetContent>
                         </Sheet>

@@ -23,11 +23,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   MoreHorizontal, Pencil, Trash, CheckCircle, Plus, MapPin, Wifi,
   Plug, Volume2, Briefcase, Building, Clock, DollarSign, Users, Info,
-  Sparkles
+  Sparkles, ArrowUpDown, ChevronUp, ChevronDown, Filter,
+  SortAsc, SortDesc
 } from 'lucide-react'
 import LocationPicker from "./LocationPicker"
 import { createPlace, deletePlace, updatePlace, verifyPlace, PlaceFormData } from "@/app/actions/places"
 import { PlaceStatus } from "@prisma/client"
+import { DEFAULT_LOCATION } from '@/lib/constants'
 
 interface Place {
   id: string
@@ -155,6 +157,9 @@ export function PlacesTable({ places }: { places: Place[] }) {
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState(defaultFormData)
   const [activeTab, setActiveTab] = useState('basic')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<string>('ALL')
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Place | null, direction: 'asc' | 'desc' }>({ key: null, direction: 'asc' })
 
   const resetForm = () => { setFormData(defaultFormData); setActiveTab('basic'); }
 
@@ -247,6 +252,57 @@ export function PlacesTable({ places }: { places: Place[] }) {
     }))
   }
 
+  const handleSort = (key: keyof Place) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }))
+  }
+
+  const getSortIcon = (key: keyof Place) => {
+    if (sortConfig.key !== key) return <ArrowUpDown className="h-3 w-3 opacity-30" />
+    return sortConfig.direction === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+  }
+
+  const intensityMap: Record<string, number> = {
+    'low': 1, 'moderate': 2, 'high': 3,
+    'quiet': 1, 'noisy': 3,
+    'soft': 1, 'normal': 2, 'crowded': 3,
+    'empty': 0, 'poor': 1, 'average': 2, 'good': 3, 'excellent': 4,
+    'none': 0, 'small': 1, 'medium': 2, 'large': 3, 'few': 1, 'many': 3
+  }
+
+  const getSortedPlaces = () => {
+    let filtered = places.filter(p => {
+      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase())
+      const matchesStatus = statusFilter === 'ALL' || p.status === statusFilter
+      return matchesSearch && matchesStatus
+    })
+
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        const valA = a[sortConfig.key!]
+        const valB = b[sortConfig.key!]
+
+        if (valA === null || valA === undefined) return 1
+        if (valB === null || valB === undefined) return -1
+
+        // Handle numeric/boolean intensity sorting for comfort metrics
+        if (['noise_level', 'music_volume', 'crowd_level', 'wifi_stability', 'table_size', 'power_outlet_density'].includes(sortConfig.key as string)) {
+          const scoreA = intensityMap[String(valA).toLowerCase()] ?? 0
+          const scoreB = intensityMap[String(valB).toLowerCase()] ?? 0
+          return sortConfig.direction === 'asc' ? scoreA - scoreB : scoreB - scoreA
+        }
+
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1
+        return 0
+      })
+    }
+
+    return filtered
+  }
+
   const PlaceCard = ({ place }: { place: Place }) => (
     <div className="bg-card border rounded-xl p-4 space-y-3 shadow-sm">
       <div className="flex justify-between items-start">
@@ -269,9 +325,15 @@ export function PlacesTable({ places }: { places: Place[] }) {
 
       <div className="flex flex-wrap gap-2 items-center">
         {getStatusBadge(place.status)}
+        {place.work_friendly_score && (
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-md">
+            <Sparkles className="h-3 w-3" />
+            {Number(place.work_friendly_score).toFixed(1)}
+          </div>
+        )}
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded-md">
           <Wifi className="h-3 w-3" />
-          {place.wifi_available ? (place.wifi_speed ? `${place.wifi_speed} Mbps` : "Yes") : "No"}
+          {place.wifi_available ? (place.wifi_speed ? `${place.wifi_speed} Mbps` : "Yes") : "—"}
         </div>
         <div className="flex items-center gap-1 text-primary text-xs font-semibold bg-primary/10 px-2 py-1 rounded-md">
           {place.price_level ? "$".repeat(place.price_level) : "—"}
@@ -282,57 +344,167 @@ export function PlacesTable({ places }: { places: Place[] }) {
 
   return (
     <>
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-4 mb-6">
+        <div className="relative w-full lg:max-w-sm">
+          <Input
+            placeholder="Search places by name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-11 bg-card rounded-xl border-border/50 focus:ring-primary/20 w-full"
+          />
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+            <Sparkles className="h-4 w-4 opacity-70" />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          <div className="flex items-center gap-2 bg-card border border-border/50 rounded-xl px-3 h-11 flex-1 lg:flex-initial">
+            <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="border-none focus:ring-0 w-full lg:w-[140px] h-9 bg-transparent p-0">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">All Status</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="VERIFIED_ADMIN">Verified Admin</SelectItem>
+                <SelectItem value="VERIFIED_USER">Verified User</SelectItem>
+                <SelectItem value="REJECTED">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2 bg-card border border-border/50 rounded-xl px-3 h-11 flex-1 lg:flex-initial">
+            <ArrowUpDown className="h-4 w-4 text-muted-foreground shrink-0" />
+            <Select
+              value={sortConfig.key || ''}
+              onValueChange={(val) => handleSort(val as keyof Place)}
+            >
+              <SelectTrigger className="border-none focus:ring-0 w-full lg:w-[140px] h-9 bg-transparent p-0">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="status">Status</SelectItem>
+                <SelectItem value="work_friendly_score">Work Score</SelectItem>
+                <SelectItem value="price_level">Price Level</SelectItem>
+                <SelectItem value="noise_level">Noise Level</SelectItem>
+                <SelectItem value="music_volume">Music Volume</SelectItem>
+                <SelectItem value="crowd_level">Crowd Level</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 hover:bg-primary/10 text-muted-foreground shrink-0"
+              onClick={() => setSortConfig(prev => ({ ...prev, direction: prev.direction === 'asc' ? 'desc' : 'asc' }))}
+              title={sortConfig.direction === 'asc' ? "Sort Descending" : "Sort Ascending"}
+            >
+              {sortConfig.direction === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+            </Button>
+          </div>
+        </div>
+      </div>
+
       <div className="hidden lg:block h-2" />
 
       <div className="hidden md:block rounded-xl border bg-card overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent border-none">
-              <TableHead className="font-semibold px-6">Name</TableHead>
+              <TableHead className="font-semibold px-6 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('name')}>
+                <div className="flex items-center gap-2">Name {getSortIcon('name')}</div>
+              </TableHead>
               <TableHead className="font-semibold">Address</TableHead>
-              <TableHead className="font-semibold">Status</TableHead>
-              <TableHead className="font-semibold">WiFi</TableHead>
-              <TableHead className="font-semibold">Price</TableHead>
+              <TableHead className="font-semibold cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('status')}>
+                <div className="flex items-center gap-2">Status {getSortIcon('status')}</div>
+              </TableHead>
+              <TableHead className="font-semibold cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('work_friendly_score')}>
+                <div className="flex items-center gap-2">Score {getSortIcon('work_friendly_score')}</div>
+              </TableHead>
+              <TableHead className="font-semibold cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('price_level')}>
+                <div className="flex items-center gap-2">Price {getSortIcon('price_level')}</div>
+              </TableHead>
+              <TableHead className="font-semibold cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('noise_level')}>
+                <div className="flex items-center gap-2">Noise {getSortIcon('noise_level')}</div>
+              </TableHead>
               <TableHead className="w-[70px] pr-6"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {places.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No places found. Add your first location!</TableCell></TableRow>
-            ) : (
-              places.map(place => (
-                <TableRow key={place.id}>
-                  <TableCell className="font-medium">{place.name}</TableCell>
+            {(() => {
+              const sortedPlaces = getSortedPlaces();
+
+              if (sortedPlaces.length === 0) {
+                return (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-12">
+                      <div className="flex flex-col items-center gap-2">
+                        <Info className="h-8 w-8 opacity-20" />
+                        <p>No places found matching your filters.</p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              }
+
+              return sortedPlaces.map(place => (
+                <TableRow key={place.id} className="group transition-colors">
+                  <TableCell className="font-medium px-6">{place.name}</TableCell>
                   <TableCell className="max-w-[200px] truncate text-muted-foreground">{place.address}</TableCell>
                   <TableCell>{getStatusBadge(place.status)}</TableCell>
-                  <TableCell>{place.wifi_available ? (place.wifi_speed ? `${place.wifi_speed} Mbps` : "✓") : <span className="text-muted-foreground">—</span>}</TableCell>
-                  <TableCell>{place.price_level ? `${"$".repeat(place.price_level)}` : "—"}</TableCell>
                   <TableCell>
+                    {place.work_friendly_score ? (
+                      <div className="flex items-center gap-1.5 font-semibold text-amber-600">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {Number(place.work_friendly_score).toFixed(1)}
+                      </div>
+                    ) : '—'}
+                  </TableCell>
+                  <TableCell>
+                    <div className="font-semibold text-emerald-600">
+                      {place.price_level ? "$".repeat(place.price_level) : "—"}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-xs uppercase tracking-wider font-medium">
+                    {place.noise_level?.replace(/_/g, ' ') || '—'}
+                  </TableCell>
+                  <TableCell className="pr-6">
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEdit(place)}><Pencil className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
-                        {/* {place.status !== "VERIFIED_ADMIN" && <DropdownMenuItem onClick={() => handleVerify(place)}><CheckCircle className="mr-2 h-4 w-4" />Verify</DropdownMenuItem>} */}
                         <DropdownMenuItem onClick={() => handleDelete(place)} className="text-destructive"><Trash className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
-            )}
+            })()}
           </TableBody>
         </Table>
       </div>
 
       {/* Mobile Card View */}
       <div className="md:hidden space-y-4">
-        {places.length === 0 ? (
-          <div className="text-center text-muted-foreground py-12 bg-card border rounded-xl">
-            No places found. Add your first location!
-          </div>
-        ) : (
-          places.map(place => <PlaceCard key={place.id} place={place} />)
-        )}
+        {(() => {
+          const sortedPlaces = getSortedPlaces();
+
+          if (sortedPlaces.length === 0) {
+            return (
+              <div className="text-center text-muted-foreground py-12 bg-card border rounded-xl flex flex-col items-center gap-2">
+                <Info className="h-8 w-8 opacity-20" />
+                No places found matching your filters.
+              </div>
+            );
+          }
+
+          return sortedPlaces.map(place => <PlaceCard key={place.id} place={place} />);
+        })()}
       </div>
 
       {/* Edit Dialog */}
@@ -530,8 +702,8 @@ function FormContent({ formData, setFormData, activeTab, setActiveTab, toggleSea
               Location Picker
             </div>
             <LocationPicker
-              initialLat={parseFloat(formData.latitude) || -6.2088}
-              initialLng={parseFloat(formData.longitude) || 106.8456}
+              initialLat={parseFloat(formData.latitude) || DEFAULT_LOCATION[0]}
+              initialLng={parseFloat(formData.longitude) || DEFAULT_LOCATION[1]}
               onLocationSelect={(lat, lng) => setFormData(prev => ({ ...prev, latitude: String(lat), longitude: String(lng) }))}
             />
           </div>
@@ -544,7 +716,7 @@ function FormContent({ formData, setFormData, activeTab, setActiveTab, toggleSea
             <div className="grid grid-cols-2 gap-3">
               <FormField label="Latitude">
                 <Input
-                  type="number" step="any" placeholder="-6.2088"
+                  type="number" step="any" placeholder={String(DEFAULT_LOCATION[0])}
                   value={formData.latitude}
                   onChange={e => setFormData({ ...formData, latitude: e.target.value })}
                   className="h-10"
@@ -552,7 +724,7 @@ function FormContent({ formData, setFormData, activeTab, setActiveTab, toggleSea
               </FormField>
               <FormField label="Longitude">
                 <Input
-                  type="number" step="any" placeholder="106.8456"
+                  type="number" step="any" placeholder={String(DEFAULT_LOCATION[1])}
                   value={formData.longitude}
                   onChange={e => setFormData({ ...formData, longitude: e.target.value })}
                   className="h-10"
