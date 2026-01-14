@@ -30,14 +30,26 @@ interface PlaceDetailsProps {
 export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
     if (!place) return null
 
-    const StatCard = ({ icon: Icon, label, value, subValue }: any) => (
-        <div className="glass-card p-4 flex flex-col gap-2">
+    const toTitleCase = (str: string) => {
+        if (!str) return str
+        return str
+            .toLowerCase()
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ')
+    }
+
+    const StatCard = ({ icon: Icon, label, value, subValue, onClick }: any) => (
+        <div
+            className={`glass-card p-4 flex flex-col gap-2 ${onClick ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
+            onClick={onClick}
+        >
             <div className="flex items-center gap-2 text-muted-foreground">
                 <Icon className="w-4 h-4" />
                 <span className="text-xs font-medium uppercase tracking-wider">{label}</span>
             </div>
             <div className="flex flex-col">
-                <span className="text-lg font-bold">{value}</span>
+                <span className={`text-lg font-bold ${onClick ? 'text-primary underline decoration-dotted underline-offset-4' : ''}`}>{value}</span>
                 {subValue && <span className="text-[10px] text-muted-foreground">{subValue}</span>}
             </div>
         </div>
@@ -105,25 +117,26 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                             icon={Wifi}
                             label="WiFi Speed"
                             value={`${place.wifi_speed || 0} Mbps`}
-                            subValue={place.wifi_stability ? `Stability: ${place.wifi_stability}` : null}
+                            subValue={place.wifi_stability ? `Stability: ${toTitleCase(place.wifi_stability)}` : null}
                         />
                         <StatCard
                             icon={Zap}
                             label="Power Outlets"
                             value={place.power_outlets_available ? "Available" : "Limited"}
-                            subValue={place.power_outlet_density ? `Density: ${place.power_outlet_density}` : null}
+                            subValue={place.power_outlet_density ? `Density: ${toTitleCase(place.power_outlet_density)}` : null}
                         />
                         <StatCard
                             icon={Users}
                             label="Crowd Level"
-                            value={place.crowd_level || "Normal"}
+                            value={toTitleCase(place.crowd_level) || "Normal"}
                             subValue="Real-time estimate"
                         />
                         <StatCard
                             icon={Clock}
                             label="Opening Hours"
                             value={place.opening_hours || "Check Maps"}
-                            subValue="Open Now"
+                            subValue={place.opening_hours ? "Open Now" : null}
+                            onClick={!place.opening_hours ? () => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + " " + place.address)}`, '_blank') : undefined}
                         />
                     </div>
 
@@ -163,15 +176,15 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Noise Level</span>
-                                    <span className="font-medium">{place.noise_level || "Moderate"}</span>
+                                    <span className="font-medium">{toTitleCase(place.noise_level) || "Moderate"}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Music Volume</span>
-                                    <span className="font-medium">{place.music_volume || "Low"}</span>
+                                    <span className="font-medium">{toTitleCase(place.music_volume) || "Low"}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Stay Policy</span>
-                                    <span className="font-medium capitalize">{place.stay_policy?.replace('_', ' ') || "No Limit"}</span>
+                                    <span className="font-medium">{toTitleCase(place.stay_policy) || "No Limit"}</span>
                                 </div>
                             </div>
                         </div>
