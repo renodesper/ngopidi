@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Users, MapPin, LayoutDashboard } from 'lucide-react'
 import { logout } from '@/app/actions/auth'
-import { Button } from '../ui/button'
+import { Button } from "@/components/ui/button"
 
 const navItems = [
     { href: '/admin', label: 'Overview', icon: LayoutDashboard },
