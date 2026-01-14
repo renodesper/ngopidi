@@ -79,8 +79,8 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                                     </Badge>
                                 )}
                                 {place.work_friendly_score && (
-                                    <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-none rounded-full">
-                                        Score: {place.work_friendly_score}/5
+                                    <Badge className="bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-100 border-amber-200 dark:border-amber-800 rounded-full px-3">
+                                        Score: {Number(place.work_friendly_score).toFixed(1)}/5
                                     </Badge>
                                 )}
                             </div>
