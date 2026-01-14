@@ -20,6 +20,7 @@ model User {
   updated_at     DateTime  @updatedAt @map("updated_at")
   accounts       Account[]
   sessions       Session[]
+  verifications  PlaceVerification[]
 
   @@map("users")
 }
@@ -102,6 +103,7 @@ model Place {
   created_at              DateTime                  @default(now()) @map("created_at")
   updated_at              DateTime                  @updatedAt @map("updated_at")
   images                  PlaceImage[]
+  verifications           PlaceVerification[]
 
   @@index([status])
   @@index([laptop_friendly])
@@ -123,6 +125,25 @@ model PlaceImage {
 
   @@index([place_id])
   @@map("place_images")
+}
+
+model PlaceVerification {
+  id                String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  place_id          String             @db.Uuid
+  user_id           String             @db.Uuid
+  proof_link        String
+  status            PlaceStatus        @default(PENDING)
+  admin_notes       String?
+  created_at        DateTime           @default(now()) @map("created_at")
+  updated_at        DateTime           @updatedAt @map("updated_at")
+  
+  place             Place              @relation(fields: [place_id], references: [id], onDelete: Cascade)
+  user              User               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([place_id])
+  @@index([user_id])
+  @@index([status])
+  @@map("place_verifications")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -222,3 +243,4 @@ enum UserRole {
   ADMIN
   USER
 }
+

@@ -24,6 +24,7 @@ import {
   MoreHorizontal, Pencil, Trash, CheckCircle, Plus, MapPin, Wifi,
   Plug, Volume2, Briefcase, Building, Clock, DollarSign, Users
 } from 'lucide-react'
+import LocationPicker from "./LocationPicker"
 import { createPlace, deletePlace, updatePlace, verifyPlace, PlaceFormData } from "@/app/actions/places"
 import { PlaceStatus } from "@prisma/client"
 
@@ -90,8 +91,8 @@ const ChipButton = ({ active, onClick, children }: { active: boolean; onClick: (
     type="button"
     onClick={onClick}
     className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all duration-200 ${active
-        ? 'bg-primary text-primary-foreground shadow-sm'
-        : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+      ? 'bg-primary text-primary-foreground shadow-sm'
+      : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground'
       }`}
   >
     {children}
@@ -214,7 +215,122 @@ export function PlacesTable({ places }: { places: Place[] }) {
     }))
   }
 
-  const FormContent = () => (
+  return (
+    <>
+      <div className="flex justify-end mb-4">
+        <Dialog open={createOpen} onOpenChange={open => { setCreateOpen(open); if (open) resetForm(); }}>
+          <DialogTrigger asChild>
+            <Button className="gap-2"><Plus className="h-4 w-4" />Add Place</Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0">
+            <DialogHeader className="p-6 pb-0">
+              <DialogTitle className="text-xl">Add New Place</DialogTitle>
+              <DialogDescription>Add a work-from-cafe friendly location</DialogDescription>
+            </DialogHeader>
+            <div className="px-6 py-4">
+              <FormContent formData={formData} setFormData={setFormData} activeTab={activeTab} setActiveTab={setActiveTab} toggleSeatingType={toggleSeatingType} toggleCommonVisitor={toggleCommonVisitor} />
+            </div>
+            <DialogFooter className="p-6 pt-4 border-t bg-muted/20">
+              <Button variant="ghost" onClick={() => setCreateOpen(false)}>Cancel</Button>
+              <Button
+                onClick={handleSubmitCreate}
+                disabled={loading || !formData.name || !formData.address || !formData.latitude || !formData.longitude}
+                className="min-w-[120px]"
+              >
+                {loading ? "Creating..." : "Create Place"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="rounded-xl border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="font-semibold">Name</TableHead>
+              <TableHead className="font-semibold">Address</TableHead>
+              <TableHead className="font-semibold">Status</TableHead>
+              <TableHead className="font-semibold">WiFi</TableHead>
+              <TableHead className="font-semibold">Price</TableHead>
+              <TableHead className="w-[70px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {places.length === 0 ? (
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No places found. Add your first location!</TableCell></TableRow>
+            ) : (
+              places.map(place => (
+                <TableRow key={place.id}>
+                  <TableCell className="font-medium">{place.name}</TableCell>
+                  <TableCell className="max-w-[200px] truncate text-muted-foreground">{place.address}</TableCell>
+                  <TableCell>{getStatusBadge(place.status)}</TableCell>
+                  <TableCell>{place.wifi_available ? (place.wifi_speed ? `${place.wifi_speed} Mbps` : "✓") : <span className="text-muted-foreground">—</span>}</TableCell>
+                  <TableCell>{place.price_level ? `${"$".repeat(place.price_level)}` : "—"}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEdit(place)}><Pencil className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
+                        {/* {place.status !== "VERIFIED_ADMIN" && <DropdownMenuItem onClick={() => handleVerify(place)}><CheckCircle className="mr-2 h-4 w-4" />Verify</DropdownMenuItem>} */}
+                        <DropdownMenuItem onClick={() => handleDelete(place)} className="text-destructive"><Trash className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="text-xl">Edit Place</DialogTitle>
+            <DialogDescription>Update place details</DialogDescription>
+          </DialogHeader>
+          <div className="px-6 py-4">
+            <FormContent formData={formData} setFormData={setFormData} activeTab={activeTab} setActiveTab={setActiveTab} toggleSeatingType={toggleSeatingType} toggleCommonVisitor={toggleCommonVisitor} />
+          </div>
+          <DialogFooter className="p-6 pt-4 border-t bg-muted/20">
+            <Button variant="ghost" onClick={() => setEditOpen(false)}>Cancel</Button>
+            <Button onClick={handleSubmitEdit} disabled={loading} className="min-w-[120px]">
+              {loading ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Dialog */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Place</DialogTitle>
+            <DialogDescription>Are you sure you want to delete "{selectedPlace?.name}"?</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={loading}>
+              {loading ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
+
+function FormContent({ formData, setFormData, activeTab, setActiveTab, toggleSeatingType, toggleCommonVisitor }: {
+  formData: typeof defaultFormData;
+  setFormData: React.Dispatch<React.SetStateAction<typeof defaultFormData>>;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  toggleSeatingType: (type: string) => void;
+  toggleCommonVisitor: (visitor: string) => void;
+}) {
+  return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5 bg-muted/30 p-1 rounded-xl">
@@ -265,31 +381,6 @@ export function PlacesTable({ places }: { places: Place[] }) {
                 rows={3}
               />
             </FormField>
-          </div>
-
-          <div className="p-4 rounded-xl bg-muted/30 space-y-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              Location Coordinates
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <FormField label="Latitude">
-                <Input
-                  type="number" step="any" placeholder="-6.2088"
-                  value={formData.latitude}
-                  onChange={e => setFormData({ ...formData, latitude: e.target.value })}
-                  className="h-10"
-                />
-              </FormField>
-              <FormField label="Longitude">
-                <Input
-                  type="number" step="any" placeholder="106.8456"
-                  value={formData.longitude}
-                  onChange={e => setFormData({ ...formData, longitude: e.target.value })}
-                  className="h-10"
-                />
-              </FormField>
-            </div>
           </div>
 
           <div className="p-4 rounded-xl bg-muted/30 space-y-4">
@@ -350,16 +441,42 @@ export function PlacesTable({ places }: { places: Place[] }) {
             </div>
           </div>
 
-          <FormField label="Status">
-            <Select value={formData.status} onValueChange={v => setFormData({ ...formData, status: v as PlaceStatus })}>
-              <SelectTrigger className="h-11"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="VERIFIED_ADMIN">Verified</SelectItem>
-                <SelectItem value="REJECTED">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormField>
+          <div className="p-4 rounded-xl bg-muted/30 space-y-4">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <MapPin className="h-4 w-4" />
+              Location Picker
+            </div>
+            <LocationPicker
+              initialLat={parseFloat(formData.latitude) || -6.2088}
+              initialLng={parseFloat(formData.longitude) || 106.8456}
+              onLocationSelect={(lat, lng) => setFormData(prev => ({ ...prev, latitude: String(lat), longitude: String(lng) }))}
+            />
+          </div>
+
+          <div className="p-4 rounded-xl bg-muted/30 space-y-4">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+              <MapPin className="h-4 w-4" />
+              Location Coordinates
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <FormField label="Latitude">
+                <Input
+                  type="number" step="any" placeholder="-6.2088"
+                  value={formData.latitude}
+                  onChange={e => setFormData({ ...formData, latitude: e.target.value })}
+                  className="h-10"
+                />
+              </FormField>
+              <FormField label="Longitude">
+                <Input
+                  type="number" step="any" placeholder="106.8456"
+                  value={formData.longitude}
+                  onChange={e => setFormData({ ...formData, longitude: e.target.value })}
+                  className="h-10"
+                />
+              </FormField>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Connectivity Tab */}
@@ -610,111 +727,5 @@ export function PlacesTable({ places }: { places: Place[] }) {
         </TabsContent>
       </Tabs>
     </div>
-  )
-
-  return (
-    <>
-      <div className="flex justify-end mb-4">
-        <Dialog open={createOpen} onOpenChange={open => { setCreateOpen(open); if (open) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button className="gap-2"><Plus className="h-4 w-4" />Add Place</Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0">
-            <DialogHeader className="p-6 pb-0">
-              <DialogTitle className="text-xl">Add New Place</DialogTitle>
-              <DialogDescription>Add a work-from-cafe friendly location</DialogDescription>
-            </DialogHeader>
-            <div className="px-6 py-4">
-              <FormContent />
-            </div>
-            <DialogFooter className="p-6 pt-4 border-t bg-muted/20">
-              <Button variant="ghost" onClick={() => setCreateOpen(false)}>Cancel</Button>
-              <Button
-                onClick={handleSubmitCreate}
-                disabled={loading || !formData.name || !formData.address || !formData.latitude || !formData.longitude}
-                className="min-w-[120px]"
-              >
-                {loading ? "Creating..." : "Create Place"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <div className="rounded-xl border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="font-semibold">Name</TableHead>
-              <TableHead className="font-semibold">Address</TableHead>
-              <TableHead className="font-semibold">Status</TableHead>
-              <TableHead className="font-semibold">WiFi</TableHead>
-              <TableHead className="font-semibold">Price</TableHead>
-              <TableHead className="w-[70px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {places.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No places found. Add your first location!</TableCell></TableRow>
-            ) : (
-              places.map(place => (
-                <TableRow key={place.id}>
-                  <TableCell className="font-medium">{place.name}</TableCell>
-                  <TableCell className="max-w-[200px] truncate text-muted-foreground">{place.address}</TableCell>
-                  <TableCell>{getStatusBadge(place.status)}</TableCell>
-                  <TableCell>{place.wifi_available ? (place.wifi_speed ? `${place.wifi_speed} Mbps` : "✓") : <span className="text-muted-foreground">—</span>}</TableCell>
-                  <TableCell>{place.price_level ? `${"$".repeat(place.price_level)}` : "—"}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(place)}><Pencil className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
-                        {place.status !== "VERIFIED_ADMIN" && <DropdownMenuItem onClick={() => handleVerify(place)}><CheckCircle className="mr-2 h-4 w-4" />Verify</DropdownMenuItem>}
-                        <DropdownMenuItem onClick={() => handleDelete(place)} className="text-destructive"><Trash className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Edit Dialog */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0">
-          <DialogHeader className="p-6 pb-0">
-            <DialogTitle className="text-xl">Edit Place</DialogTitle>
-            <DialogDescription>Update place details</DialogDescription>
-          </DialogHeader>
-          <div className="px-6 py-4">
-            <FormContent />
-          </div>
-          <DialogFooter className="p-6 pt-4 border-t bg-muted/20">
-            <Button variant="ghost" onClick={() => setEditOpen(false)}>Cancel</Button>
-            <Button onClick={handleSubmitEdit} disabled={loading} className="min-w-[120px]">
-              {loading ? "Saving..." : "Save Changes"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Dialog */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Delete Place</DialogTitle>
-            <DialogDescription>Are you sure you want to delete "{selectedPlace?.name}"?</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setDeleteOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={confirmDelete} disabled={loading}>
-              {loading ? "Deleting..." : "Delete"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
   )
 }
