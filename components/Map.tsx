@@ -167,7 +167,7 @@ export default function Map() {
     setShowResults(true)
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
       )
       const data = await response.json()
       setSearchResults(data)
