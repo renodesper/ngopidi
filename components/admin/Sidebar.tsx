@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Users, MapPin, LayoutDashboard } from 'lucide-react'
 import { logout } from '@/app/actions/auth'
+import { Button } from "@/components/ui/button"
 
 const allNavItems = [
   { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, adminOnly: false },
@@ -49,9 +50,9 @@ export function Sidebar({ userEmail, userRole }: { userEmail: string; userRole: 
       </nav>
 
       <form action={logout} className="mt-auto pt-4 border-t">
-        <button className="text-red-500 hover:underline text-sm w-full text-left">
+        <Button variant="secondary" className="w-full text-left cursor-pointer" type="submit">
           Sign Out
-        </button>
+        </Button>
       </form>
     </div>
   )
