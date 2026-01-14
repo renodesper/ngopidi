@@ -22,7 +22,8 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   MoreHorizontal, Pencil, Trash, CheckCircle, Plus, MapPin, Wifi,
-  Plug, Volume2, Briefcase, Building, Clock, DollarSign, Users
+  Plug, Volume2, Briefcase, Building, Clock, DollarSign, Users, Info,
+  Sparkles
 } from 'lucide-react'
 import LocationPicker from "./LocationPicker"
 import { createPlace, deletePlace, updatePlace, verifyPlace, PlaceFormData } from "@/app/actions/places"
@@ -114,6 +115,37 @@ const FeatureToggle = ({ icon: Icon, label, checked, onChange }: {
     <Switch checked={checked} onCheckedChange={onChange} />
   </div>
 )
+
+// Time Range Picker component
+const TimeRangePicker = ({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) => {
+  const [start, end] = value.split(' - ').concat(['', ''])
+
+  const updateTime = (newStart: string, newEnd: string) => {
+    if (!newStart && !newEnd) onChange('')
+    else onChange(`${newStart || '00:00'} - ${newEnd || '00:00'}`)
+  }
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm font-medium text-foreground/80">{label}</Label>
+      <div className="flex items-center gap-2">
+        <Input
+          type="time"
+          value={start}
+          onChange={e => updateTime(e.target.value, end)}
+          className="h-10 flex-1"
+        />
+        <span className="text-muted-foreground text-xs font-medium">to</span>
+        <Input
+          type="time"
+          value={end}
+          onChange={e => updateTime(start, e.target.value)}
+          className="h-10 flex-1"
+        />
+      </div>
+    </div>
+  )
+}
 
 export function PlacesTable({ places }: { places: Place[] }) {
   const [createOpen, setCreateOpen] = useState(false)
@@ -333,62 +365,65 @@ function FormContent({ formData, setFormData, activeTab, setActiveTab, toggleSea
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 bg-muted/30 p-1 rounded-xl">
+        <TabsList className="grid w-full grid-cols-4 bg-muted/30 p-1 rounded-xl">
           <TabsTrigger value="basic" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs">
-            <MapPin className="h-3.5 w-3.5 mr-1.5" />Basic
+            <Info className="h-3.5 w-3.5 mr-1.5" />Info
           </TabsTrigger>
-          <TabsTrigger value="connectivity" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs">
-            <Wifi className="h-3.5 w-3.5 mr-1.5" />Connect
+          <TabsTrigger value="location" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs">
+            <MapPin className="h-3.5 w-3.5 mr-1.5" />Location
           </TabsTrigger>
-          <TabsTrigger value="environment" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs">
-            <Volume2 className="h-3.5 w-3.5 mr-1.5" />Vibe
+          <TabsTrigger value="workspace" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs">
+            <Briefcase className="h-3.5 w-3.5 mr-1.5" />Workspace
           </TabsTrigger>
-          <TabsTrigger value="work" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs">
-            <Briefcase className="h-3.5 w-3.5 mr-1.5" />Work
-          </TabsTrigger>
-          <TabsTrigger value="facilities" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs">
-            <Building className="h-3.5 w-3.5 mr-1.5" />Facilities
+          <TabsTrigger value="vibe" className="rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm text-xs">
+            <Sparkles className="h-3.5 w-3.5 mr-1.5" />Vibe
           </TabsTrigger>
         </TabsList>
 
         {/* Basic Info Tab */}
-        <TabsContent value="basic" className="mt-6 space-y-5">
-          <div className="grid gap-4">
-            <FormField label="Place Name">
-              <Input
-                placeholder="Enter cafe or workspace name"
-                value={formData.name}
-                onChange={e => setFormData({ ...formData, name: e.target.value })}
-                className="h-11"
-              />
-            </FormField>
+        <TabsContent value="basic" className="mt-6 space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <Info className="h-4 w-4" />
+              General Information
+            </div>
+            <div className="grid gap-4 pl-1">
+              <FormField label="Place Name">
+                <Input
+                  placeholder="Enter cafe or workspace name"
+                  value={formData.name}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  className="h-11"
+                />
+              </FormField>
 
-            <FormField label="Address">
-              <Input
-                placeholder="Full address"
-                value={formData.address}
-                onChange={e => setFormData({ ...formData, address: e.target.value })}
-                className="h-11"
-              />
-            </FormField>
+              <FormField label="Address">
+                <Input
+                  placeholder="Full address"
+                  value={formData.address}
+                  onChange={e => setFormData({ ...formData, address: e.target.value })}
+                  className="h-11"
+                />
+              </FormField>
 
-            <FormField label="Description" hint="Brief description of the place">
-              <Textarea
-                placeholder="A cozy cafe with great coffee..."
-                value={formData.description}
-                onChange={e => setFormData({ ...formData, description: e.target.value })}
-                className="resize-none"
-                rows={3}
-              />
-            </FormField>
+              <FormField label="Description" hint="Brief description of the place">
+                <Textarea
+                  placeholder="A cozy cafe with great coffee..."
+                  value={formData.description}
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
+                  className="resize-none"
+                  rows={3}
+                />
+              </FormField>
+            </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-muted/30 space-y-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
               <DollarSign className="h-4 w-4" />
               Pricing
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-3 pl-1">
               <FormField label="Price Level" hint="1-5">
                 <Input
                   type="number" min="1" max="5" placeholder="3"
@@ -416,31 +451,28 @@ function FormContent({ formData, setFormData, activeTab, setActiveTab, toggleSea
             </div>
           </div>
 
-          <div className="p-4 rounded-xl bg-muted/30 space-y-4">
-            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
               <Clock className="h-4 w-4" />
-              Hours
+              Operation Hours
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <FormField label="Opening Hours">
-                <Input
-                  placeholder="08:00 - 22:00"
-                  value={formData.opening_hours}
-                  onChange={e => setFormData({ ...formData, opening_hours: e.target.value })}
-                  className="h-10"
-                />
-              </FormField>
-              <FormField label="Busy Hours">
-                <Input
-                  placeholder="12:00 - 14:00"
-                  value={formData.busy_hours}
-                  onChange={e => setFormData({ ...formData, busy_hours: e.target.value })}
-                  className="h-10"
-                />
-              </FormField>
+            <div className="grid grid-cols-2 gap-4 pl-1">
+              <TimeRangePicker
+                label="Opening Hours"
+                value={formData.opening_hours || ''}
+                onChange={v => setFormData({ ...formData, opening_hours: v })}
+              />
+              <TimeRangePicker
+                label="Busy Hours"
+                value={formData.busy_hours || ''}
+                onChange={v => setFormData({ ...formData, busy_hours: v })}
+              />
             </div>
           </div>
+        </TabsContent>
 
+        {/* Location Tab */}
+        <TabsContent value="location" className="mt-6 space-y-5">
           <div className="p-4 rounded-xl bg-muted/30 space-y-4">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <MapPin className="h-4 w-4" />
@@ -479,250 +511,282 @@ function FormContent({ formData, setFormData, activeTab, setActiveTab, toggleSea
           </div>
         </TabsContent>
 
-        {/* Connectivity Tab */}
-        <TabsContent value="connectivity" className="mt-6 space-y-5">
-          <FeatureToggle
-            icon={Wifi}
-            label="WiFi Available"
-            checked={formData.wifi_available}
-            onChange={v => setFormData({ ...formData, wifi_available: v, wifi_speed: '', wifi_stability: '', wifi_policy: '' })}
-          />
+        {/* Workspace Tab */}
+        <TabsContent value="workspace" className="mt-6 space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <Wifi className="h-4 w-4" />
+              Connectivity
+            </div>
+            <div className="grid gap-4 pl-1">
+              <FeatureToggle
+                icon={Wifi}
+                label="WiFi Available"
+                checked={formData.wifi_available}
+                onChange={v => setFormData({ ...formData, wifi_available: v, wifi_speed: '', wifi_stability: '', wifi_policy: '' })}
+              />
 
-          {formData.wifi_available && (
-            <div className="pl-4 ml-2 border-l-2 border-primary/20 space-y-4 animate-in slide-in-from-top-2 duration-200">
-              <div className="grid grid-cols-3 gap-3">
-                <FormField label="Speed (Mbps)">
+              {formData.wifi_available && (
+                <div className="pl-4 ml-2 border-l-2 border-primary/20 space-y-4 animate-in slide-in-from-top-2 duration-200">
+                  <div className="grid grid-cols-3 gap-3">
+                    <FormField label="Speed (Mbps)">
+                      <Input
+                        type="number" placeholder="50"
+                        value={formData.wifi_speed}
+                        onChange={e => setFormData({ ...formData, wifi_speed: e.target.value })}
+                        className="h-10"
+                      />
+                    </FormField>
+                    <FormField label="Stability">
+                      <Select value={formData.wifi_stability} onValueChange={v => setFormData({ ...formData, wifi_stability: v })}>
+                        <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="poor">Poor</SelectItem>
+                          <SelectItem value="average">Average</SelectItem>
+                          <SelectItem value="good">Good</SelectItem>
+                          <SelectItem value="excellent">Excellent</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormField>
+                    <FormField label="Policy">
+                      <Select value={formData.wifi_policy} onValueChange={v => setFormData({ ...formData, wifi_policy: v })}>
+                        <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="free">Free</SelectItem>
+                          <SelectItem value="purchase_required">Purchase Required</SelectItem>
+                          <SelectItem value="time_limited">Time Limited</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormField>
+                  </div>
+                </div>
+              )}
+
+              <FeatureToggle
+                icon={Plug}
+                label="Power Outlets"
+                checked={formData.power_outlets_available}
+                onChange={v => setFormData({ ...formData, power_outlets_available: v, power_outlet_density: '' })}
+              />
+
+              {formData.power_outlets_available && (
+                <div className="pl-4 ml-2 border-l-2 border-primary/20 animate-in slide-in-from-top-2 duration-200">
+                  <FormField label="Outlet Density">
+                    <Select value={formData.power_outlet_density} onValueChange={v => setFormData({ ...formData, power_outlet_density: v })}>
+                      <SelectTrigger className="h-10 w-48"><SelectValue placeholder="Select" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="few">Few</SelectItem>
+                        <SelectItem value="moderate">Moderate</SelectItem>
+                        <SelectItem value="many">Many</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <Briefcase className="h-4 w-4" />
+              Work Suitability
+            </div>
+            <div className="grid gap-4 pl-1">
+              <div className="grid grid-cols-2 gap-3">
+                <FeatureToggle
+                  icon={Briefcase}
+                  label="Laptop Friendly"
+                  checked={formData.laptop_friendly}
+                  onChange={v => setFormData({ ...formData, laptop_friendly: v })}
+                />
+                <FeatureToggle
+                  icon={Users}
+                  label="Meeting Friendly"
+                  checked={formData.meeting_friendly}
+                  onChange={v => setFormData({ ...formData, meeting_friendly: v })}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="Work Score" hint="1.0 - 5.0">
                   <Input
-                    type="number" placeholder="50"
-                    value={formData.wifi_speed}
-                    onChange={e => setFormData({ ...formData, wifi_speed: e.target.value })}
+                    type="number" min="1" max="5" step="0.1" placeholder="4.5"
+                    value={formData.work_friendly_score}
+                    onChange={e => setFormData({ ...formData, work_friendly_score: e.target.value })}
                     className="h-10"
                   />
                 </FormField>
-                <FormField label="Stability">
-                  <Select value={formData.wifi_stability} onValueChange={v => setFormData({ ...formData, wifi_stability: v })}>
+                <FormField label="Stay Policy">
+                  <Select value={formData.stay_policy} onValueChange={v => setFormData({ ...formData, stay_policy: v })}>
                     <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="poor">Poor</SelectItem>
-                      <SelectItem value="average">Average</SelectItem>
-                      <SelectItem value="good">Good</SelectItem>
-                      <SelectItem value="excellent">Excellent</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormField>
-                <FormField label="Policy">
-                  <Select value={formData.wifi_policy} onValueChange={v => setFormData({ ...formData, wifi_policy: v })}>
-                    <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="free">Free</SelectItem>
-                      <SelectItem value="purchase_required">Purchase Required</SelectItem>
-                      <SelectItem value="time_limited">Time Limited</SelectItem>
+                      <SelectItem value="no_limit">No Limit</SelectItem>
+                      <SelectItem value="soft_limit">Soft Limit</SelectItem>
+                      <SelectItem value="explicit_limit">Explicit Limit</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormField>
               </div>
             </div>
-          )}
+          </div>
 
-          <FeatureToggle
-            icon={Plug}
-            label="Power Outlets"
-            checked={formData.power_outlets_available}
-            onChange={v => setFormData({ ...formData, power_outlets_available: v, power_outlet_density: '' })}
-          />
-
-          {formData.power_outlets_available && (
-            <div className="pl-4 ml-2 border-l-2 border-primary/20 animate-in slide-in-from-top-2 duration-200">
-              <FormField label="Outlet Density">
-                <Select value={formData.power_outlet_density} onValueChange={v => setFormData({ ...formData, power_outlet_density: v })}>
-                  <SelectTrigger className="h-10 w-48"><SelectValue placeholder="Select" /></SelectTrigger>
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <Building className="h-4 w-4" />
+              Furniture
+            </div>
+            <div className="grid gap-4 pl-1">
+              <FormField label="Table Size">
+                <Select value={formData.table_size} onValueChange={v => setFormData({ ...formData, table_size: v })}>
+                  <SelectTrigger className="h-10"><SelectValue placeholder="Select table size" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="few">Few</SelectItem>
-                    <SelectItem value="moderate">Moderate</SelectItem>
-                    <SelectItem value="many">Many</SelectItem>
+                    <SelectItem value="small">Small</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="large">Large</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+
+              <FormField label="Seating Types">
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {[
+                    { value: 'single_table', label: 'Single Table' },
+                    { value: 'communal_table', label: 'Communal' },
+                    { value: 'bar_seating', label: 'Bar Seating' },
+                    { value: 'sofa', label: 'Sofa' }
+                  ].map(type => (
+                    <ChipButton
+                      key={type.value}
+                      active={formData.seating_types.includes(type.value)}
+                      onClick={() => toggleSeatingType(type.value)}
+                    >
+                      {type.label}
+                    </ChipButton>
+                  ))}
+                </div>
+              </FormField>
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Vibe Tab */}
+        <TabsContent value="vibe" className="mt-6 space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <Volume2 className="h-4 w-4" />
+              Atmosphere
+            </div>
+            <div className="grid grid-cols-3 gap-3 pl-1">
+              <FormField label="Noise Level">
+                <Select value={formData.noise_level} onValueChange={v => setFormData({ ...formData, noise_level: v })}>
+                  <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="quiet">🤫 Quiet</SelectItem>
+                    <SelectItem value="moderate">😊 Moderate</SelectItem>
+                    <SelectItem value="noisy">🔊 Noisy</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+              <FormField label="Music Volume">
+                <Select value={formData.music_volume} onValueChange={v => setFormData({ ...formData, music_volume: v })}>
+                  <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">🔈 Low</SelectItem>
+                    <SelectItem value="medium">🔉 Medium</SelectItem>
+                    <SelectItem value="loud">🔊 Loud</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FormField>
+              <FormField label="Crowd Level">
+                <Select value={formData.crowd_level} onValueChange={v => setFormData({ ...formData, crowd_level: v })}>
+                  <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="empty">Empty</SelectItem>
+                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="crowded">Crowded</SelectItem>
                   </SelectContent>
                 </Select>
               </FormField>
             </div>
-          )}
-        </TabsContent>
-
-        {/* Environment Tab */}
-        <TabsContent value="environment" className="mt-6 space-y-5">
-          <div className="grid grid-cols-3 gap-3">
-            <FormField label="Noise Level">
-              <Select value={formData.noise_level} onValueChange={v => setFormData({ ...formData, noise_level: v })}>
-                <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="quiet">🤫 Quiet</SelectItem>
-                  <SelectItem value="moderate">😊 Moderate</SelectItem>
-                  <SelectItem value="noisy">🔊 Noisy</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-            <FormField label="Music Volume">
-              <Select value={formData.music_volume} onValueChange={v => setFormData({ ...formData, music_volume: v })}>
-                <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">🔈 Low</SelectItem>
-                  <SelectItem value="medium">🔉 Medium</SelectItem>
-                  <SelectItem value="loud">🔊 Loud</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-            <FormField label="Crowd Level">
-              <Select value={formData.crowd_level} onValueChange={v => setFormData({ ...formData, crowd_level: v })}>
-                <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="empty">Empty</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="crowded">Crowded</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
           </div>
 
-          <FormField label="Table Size">
-            <Select value={formData.table_size} onValueChange={v => setFormData({ ...formData, table_size: v })}>
-              <SelectTrigger className="h-10"><SelectValue placeholder="Select table size" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="small">Small</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="large">Large</SelectItem>
-              </SelectContent>
-            </Select>
-          </FormField>
-
-          <FormField label="Seating Types">
-            <div className="flex flex-wrap gap-2 pt-1">
-              {[
-                { value: 'single_table', label: 'Single Table' },
-                { value: 'communal_table', label: 'Communal' },
-                { value: 'bar_seating', label: 'Bar Seating' },
-                { value: 'sofa', label: 'Sofa' }
-              ].map(type => (
-                <ChipButton
-                  key={type.value}
-                  active={formData.seating_types.includes(type.value)}
-                  onClick={() => toggleSeatingType(type.value)}
-                >
-                  {type.label}
-                </ChipButton>
-              ))}
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+              <Building className="h-4 w-4" />
+              Facilities & Comfort
             </div>
-          </FormField>
+            <div className="grid gap-4 pl-1">
+              <div className="grid grid-cols-2 gap-3">
+                <FeatureToggle
+                  icon={Building}
+                  label="Air Conditioning"
+                  checked={formData.air_conditioning}
+                  onChange={v => setFormData({ ...formData, air_conditioning: v })}
+                />
+                <FeatureToggle
+                  icon={Building}
+                  label="Restroom"
+                  checked={formData.restroom_available}
+                  onChange={v => setFormData({ ...formData, restroom_available: v })}
+                />
+              </div>
 
-          <FormField label="Common Visitors">
-            <div className="flex flex-wrap gap-2 pt-1">
-              {[
-                { value: 'students', label: '🎓 Students' },
-                { value: 'remote_workers', label: '💻 Remote Workers' },
-                { value: 'meetings', label: '🤝 Meetings' },
-                { value: 'casual_visitors', label: '☕ Casual' }
-              ].map(visitor => (
-                <ChipButton
-                  key={visitor.value}
-                  active={formData.common_visitors.includes(visitor.value)}
-                  onClick={() => toggleCommonVisitor(visitor.value)}
-                >
-                  {visitor.label}
-                </ChipButton>
-              ))}
-            </div>
-          </FormField>
-        </TabsContent>
-
-        {/* Work Suitability Tab */}
-        <TabsContent value="work" className="mt-6 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <FeatureToggle
-              icon={Briefcase}
-              label="Laptop Friendly"
-              checked={formData.laptop_friendly}
-              onChange={v => setFormData({ ...formData, laptop_friendly: v })}
-            />
-            <FeatureToggle
-              icon={Users}
-              label="Meeting Friendly"
-              checked={formData.meeting_friendly}
-              onChange={v => setFormData({ ...formData, meeting_friendly: v })}
-            />
-          </div>
-
-          <FeatureToggle
-            icon={Volume2}
-            label="Call Friendly"
-            checked={formData.call_friendly}
-            onChange={v => setFormData({ ...formData, call_friendly: v })}
-          />
-
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label="Stay Policy">
-              <Select value={formData.stay_policy} onValueChange={v => setFormData({ ...formData, stay_policy: v })}>
-                <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="no_limit">No Limit</SelectItem>
-                  <SelectItem value="soft_limit">Soft Limit</SelectItem>
-                  <SelectItem value="explicit_limit">Explicit Limit</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-            <FormField label="Work Score" hint="1.0 - 5.0">
-              <Input
-                type="number" min="1" max="5" step="0.1" placeholder="4.5"
-                value={formData.work_friendly_score}
-                onChange={e => setFormData({ ...formData, work_friendly_score: e.target.value })}
-                className="h-10"
+              <FeatureToggle
+                icon={Building}
+                label="Parking Available"
+                checked={formData.parking_available}
+                onChange={v => setFormData({ ...formData, parking_available: v })}
               />
-            </FormField>
-          </div>
-        </TabsContent>
 
-        {/* Facilities Tab */}
-        <TabsContent value="facilities" className="mt-6 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <FeatureToggle
-              icon={Building}
-              label="Air Conditioning"
-              checked={formData.air_conditioning}
-              onChange={v => setFormData({ ...formData, air_conditioning: v })}
-            />
-            <FeatureToggle
-              icon={Building}
-              label="Restroom"
-              checked={formData.restroom_available}
-              onChange={v => setFormData({ ...formData, restroom_available: v })}
-            />
-          </div>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField label="Temperature">
+                  <Select value={formData.temperature_comfort} onValueChange={v => setFormData({ ...formData, temperature_comfort: v })}>
+                    <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cold">❄️ Cold</SelectItem>
+                      <SelectItem value="comfortable">✨ Comfortable</SelectItem>
+                      <SelectItem value="warm">🔥 Warm</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormField>
+                <FormField label="Smoking Area">
+                  <Select value={formData.smoking_area} onValueChange={v => setFormData({ ...formData, smoking_area: v })}>
+                    <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="separate">Separate Area</SelectItem>
+                      <SelectItem value="indoor">Indoor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormField>
+              </div>
 
-          <FeatureToggle
-            icon={Building}
-            label="Parking Available"
-            checked={formData.parking_available}
-            onChange={v => setFormData({ ...formData, parking_available: v })}
-          />
+              <FeatureToggle
+                icon={Volume2}
+                label="Call Friendly"
+                checked={formData.call_friendly}
+                onChange={v => setFormData({ ...formData, call_friendly: v })}
+              />
 
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label="Temperature">
-              <Select value={formData.temperature_comfort} onValueChange={v => setFormData({ ...formData, temperature_comfort: v })}>
-                <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cold">❄️ Cold</SelectItem>
-                  <SelectItem value="comfortable">✨ Comfortable</SelectItem>
-                  <SelectItem value="warm">🔥 Warm</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-            <FormField label="Smoking Area">
-              <Select value={formData.smoking_area} onValueChange={v => setFormData({ ...formData, smoking_area: v })}>
-                <SelectTrigger className="h-10"><SelectValue placeholder="Select" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="separate">Separate Area</SelectItem>
-                  <SelectItem value="indoor">Indoor</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
+              <FormField label="Common Visitors">
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {[
+                    { value: 'students', label: '🎓 Students' },
+                    { value: 'remote_workers', label: '💻 Remote Workers' },
+                    { value: 'meetings', label: '🤝 Meetings' },
+                    { value: 'casual_visitors', label: '☕ Casual' }
+                  ].map(visitor => (
+                    <ChipButton
+                      key={visitor.value}
+                      active={formData.common_visitors.includes(visitor.value)}
+                      onClick={() => toggleCommonVisitor(visitor.value)}
+                    >
+                      {visitor.label}
+                    </ChipButton>
+                  ))}
+                </div>
+              </FormField>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
