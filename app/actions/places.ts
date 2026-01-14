@@ -6,11 +6,15 @@ import { auth } from "@/auth"
 import { revalidatePath } from "next/cache"
 
 export async function submitPlace(data: Prisma.PlaceCreateInput) {
+  const session = await auth()
+  const userId = session?.user?.id
+
   try {
     const place = await prisma.place.create({
       data: {
         ...data,
         status: PlaceStatus.PENDING,
+        submitter: userId ? { connect: { id: userId } } : undefined,
       },
     })
     return { success: true, data: place }
@@ -208,6 +212,9 @@ export interface PlaceFormData {
 }
 
 export async function createPlace(data: PlaceFormData) {
+  const session = await auth()
+  const userId = session?.user?.id
+
   await checkAdmin()
   try {
     const place = await prisma.place.create({
@@ -218,6 +225,7 @@ export async function createPlace(data: PlaceFormData) {
         latitude: data.latitude,
         longitude: data.longitude,
         status: data.status ?? PlaceStatus.PENDING,
+        submitter: userId ? { connect: { id: userId } } : undefined,
 
         price_level: data.price_level,
         average_drink_price: data.average_drink_price,

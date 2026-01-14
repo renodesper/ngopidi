@@ -21,6 +21,7 @@ model User {
   accounts       Account[]
   sessions       Session[]
   verifications  PlaceVerification[]
+  submitted_places Place[] @relation("SubmittedPlaces")
 
   @@map("users")
 }
@@ -99,6 +100,8 @@ model Place {
   opening_hours           String?                   @map("opening_hours")
   busy_hours              String?                   @map("busy_hours")
   common_visitors         CommonVisitor[]           @map("common_visitors")
+  submitter_id            String?                   @db.Uuid @map("submitter_id")
+  submitter               User?                     @relation("SubmittedPlaces", fields: [submitter_id], references: [id])
   status                  PlaceStatus               @default(PENDING)
   created_at              DateTime                  @default(now()) @map("created_at")
   updated_at              DateTime                  @updatedAt @map("updated_at")

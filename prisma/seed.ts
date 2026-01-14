@@ -540,7 +540,10 @@ async function main() {
 
     if (!existing) {
       await prisma.place.create({
-        data: shop
+        data: {
+          ...shop,
+          submitter_id: admin.id
+        }
       })
       console.log(`Created place: ${shop.name}`)
     } else {
