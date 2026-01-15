@@ -1,14 +1,14 @@
 'use server'
 
-import { prisma } from "@/lib/prisma"
-import { PlaceStatus } from "@prisma/client"
-import { auth } from "@/auth"
-import { revalidatePath } from "next/cache"
+import { auth } from '@/auth'
+import { prisma } from '@/lib/prisma'
+import { PlaceStatus } from '@prisma/client'
+import { revalidatePath } from 'next/cache'
 
 async function getSession() {
     const session = await auth()
     if (!session?.user?.id) {
-        throw new Error("Unauthorized")
+        throw new Error('Unauthorized')
     }
     return session
 }
@@ -16,8 +16,8 @@ async function getSession() {
 async function checkAdmin() {
     const session = await getSession()
     // @ts-ignore
-    if (session.user.role !== "ADMIN") {
-        throw new Error("Unauthorized")
+    if (session.user.role !== 'ADMIN') {
+        throw new Error('Unauthorized')
     }
     return session
 }
@@ -26,7 +26,7 @@ export async function submitVerification(placeId: string, proofLink: string) {
     try {
         const session = await auth()
         if (!session?.user?.id) {
-            return { success: false, error: "Unauthorized" }
+            return { success: false, error: 'Unauthorized' }
         }
 
         const verification = await prisma.placeVerification.create({
@@ -38,14 +38,14 @@ export async function submitVerification(placeId: string, proofLink: string) {
             },
         })
 
-        revalidatePath("/")
-        revalidatePath("/dashboard")
+        revalidatePath('/')
+        revalidatePath('/dashboard')
         revalidatePath(`/places/${placeId}`)
 
         return { success: true, data: verification }
     } catch (error) {
-        console.error("Failed to submit verification:", error)
-        return { success: false, error: "Failed to submit verification" }
+        console.error('Failed to submit verification:', error)
+        return { success: false, error: 'Failed to submit verification' }
     }
 }
 
@@ -58,28 +58,24 @@ export async function getVerifications(placeId?: string) {
                     select: {
                         name: true,
                         email: true,
-                    }
+                    },
                 },
                 place: {
                     select: {
                         name: true,
-                    }
-                }
+                    },
+                },
             },
-            orderBy: { created_at: "desc" },
+            orderBy: { created_at: 'desc' },
         })
         return { success: true, data: verifications }
     } catch (error) {
-        console.error("Failed to fetch verifications:", error)
-        return { success: false, error: "Failed to fetch verifications" }
+        console.error('Failed to fetch verifications:', error)
+        return { success: false, error: 'Failed to fetch verifications' }
     }
 }
 
-export async function updateVerificationStatus(
-    verificationId: string,
-    status: PlaceStatus,
-    adminNotes?: string
-) {
+export async function updateVerificationStatus(verificationId: string, status: PlaceStatus, adminNotes?: string) {
     try {
         await checkAdmin()
 
@@ -89,24 +85,25 @@ export async function updateVerificationStatus(
                 data: {
                     status: PlaceStatus.REJECTED,
                     admin_notes: adminNotes,
-                }
+                },
             })
-            revalidatePath("/admin")
-            revalidatePath("/dashboard")
+            revalidatePath('/admin')
+            revalidatePath('/dashboard')
             return { success: true }
         }
 
         // Fetch verification and user role
         const verification = await prisma.placeVerification.findUnique({
             where: { id: verificationId },
-            include: { user: true, place: true }
+            include: { user: true, place: true },
         })
 
         if (!verification) {
-            return { success: false, error: "Verification not found" }
+            return { success: false, error: 'Verification not found' }
         }
 
-        const newPlaceStatus = verification.user.role === "ADMIN" ? PlaceStatus.VERIFIED_ADMIN : PlaceStatus.VERIFIED_USER
+        const newPlaceStatus =
+            verification.user.role === 'ADMIN' ? PlaceStatus.VERIFIED_ADMIN : PlaceStatus.VERIFIED_USER
 
         // Update verification status and place status
         await prisma.$transaction([
@@ -115,21 +112,21 @@ export async function updateVerificationStatus(
                 data: {
                     status: newPlaceStatus,
                     admin_notes: adminNotes,
-                }
+                },
             }),
             prisma.place.update({
                 where: { id: verification.place_id },
-                data: { status: newPlaceStatus }
-            })
+                data: { status: newPlaceStatus },
+            }),
         ])
 
-        revalidatePath("/admin")
-        revalidatePath("/dashboard")
+        revalidatePath('/admin')
+        revalidatePath('/dashboard')
         revalidatePath(`/places/${verification.place_id}`)
 
         return { success: true }
     } catch (error) {
-        console.error("Failed to update verification status:", error)
-        return { success: false, error: "Failed to update verification status" }
+        console.error('Failed to update verification status:', error)
+        return { success: false, error: 'Failed to update verification status' }
     }
 }

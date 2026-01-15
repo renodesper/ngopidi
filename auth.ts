@@ -39,6 +39,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     jwt({ token, user }) {
       if (user) {
+        token.id = user.id;
         // @ts-ignore
         token.role = user.role;
       }
@@ -46,6 +47,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     session({ session, token }) {
       if (session.user) {
+        session.user.id = token.id as string;
         // @ts-ignore
         session.user.role = token.role;
       }

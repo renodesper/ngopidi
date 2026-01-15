@@ -1,34 +1,44 @@
 'use client'
 
+import { logout } from '@/app/actions/auth'
+import { Button } from '@/components/atoms/button'
+import { SheetClose } from '@/components/molecules/sheet'
+import { cn } from '@/lib/utils'
+import { LayoutDashboard, MapPin, Users } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { Users, MapPin, LayoutDashboard } from 'lucide-react'
-import { logout } from '@/app/actions/auth'
-import { Button } from "@/components/ui/button"
-import { SheetClose } from "@/components/ui/sheet"
 
-const navItems = [
-    { href: '/admin', label: 'Overview', icon: LayoutDashboard },
-    { href: '/admin/places', label: 'Places', icon: MapPin },
-    { href: '/admin/users', label: 'Users', icon: Users },
+const allNavItems = [
+    { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, adminOnly: false },
+    { href: '/dashboard/places', label: 'Places', icon: MapPin, adminOnly: false },
+    { href: '/dashboard/users', label: 'Users', icon: Users, adminOnly: true },
 ]
 
-export function AdminSidebar({ userEmail, isMobile }: { userEmail: string; isMobile?: boolean }) {
+export function Sidebar({
+    userEmail,
+    userRole,
+    isMobile,
+}: {
+    userEmail: string
+    userRole: string
+    isMobile?: boolean
+}) {
     const pathname = usePathname()
+
+    const navItems = allNavItems.filter((item) => !item.adminOnly || userRole === 'ADMIN')
 
     return (
         <div className="flex flex-col h-full">
-            <div className="mb-8 hidden lg:block">
-                <h1 className="text-xl font-bold">Admin Panel</h1>
+            <div className="mb-8">
+                <h1 className="text-xl font-bold">Ngopi Yuk!</h1>
                 <p className="text-sm text-muted-foreground mt-1">{userEmail}</p>
             </div>
 
             <nav className="flex-1 space-y-1">
                 {navItems.map((item) => {
                     const Icon = item.icon
-                    const isActive = pathname === item.href ||
-                        (item.href !== '/admin' && pathname.startsWith(item.href))
+                    const isActive =
+                        pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
 
                     const content = (
                         <Link

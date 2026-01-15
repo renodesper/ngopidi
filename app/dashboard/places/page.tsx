@@ -1,21 +1,51 @@
-import { getPlaces, deletePlace, verifyPlace } from "@/app/actions/places"
-import { PlacesTable } from "@/components/admin/PlacesTable"
-import { PlaceStatus } from "@prisma/client"
+import { getPlacesList } from '@/app/actions/places'
+import { auth } from '@/auth'
+import { PlacesTable } from '@/components/organisms/PlacesTable'
 
-export default async function PlacesPage() {
-  const { data: places } = await getPlaces(undefined, undefined, undefined, [
-    PlaceStatus.UNVERIFIED,
-    PlaceStatus.VERIFIED_ADMIN,
-    PlaceStatus.VERIFIED_USER,
-    PlaceStatus.REJECTED
-  ])
+interface SearchParams {
+    page?: string
+    search?: string
+    status?: string
+    sortKey?: string
+    sortDir?: 'asc' | 'desc'
+}
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Places Management</h1>
-      </div>
-      <PlacesTable places={places || []} />
-    </div>
-  )
+export default async function PlacesPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+    const params = await searchParams
+    const { page, search, status, sortKey, sortDir } = params
+    const session = await auth()
+    const currentUserId = session?.user?.id
+    // @ts-ignore
+    const currentUserRole = session?.user?.role
+
+    const currentPage = Number(page) || 1
+    const currentStatus = status || 'ALL'
+
+    const { data: places, totalPages } = await getPlacesList({
+        page: currentPage,
+        limit: 20,
+        search: search || '',
+        status: currentStatus !== 'ALL' ? currentStatus : undefined, // If ALL, we might want to default to specific statuses?
+        sortKey: sortKey || 'created_at',
+        sortDir: sortDir || 'desc',
+    })
+
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold">Places Management</h1>
+            </div>
+            <PlacesTable
+                places={places || []}
+                page={currentPage}
+                totalPages={totalPages || 1}
+                statusFilter={currentStatus}
+                searchQuery={search || ''}
+                sortKey={sortKey || 'created_at'}
+                sortDir={sortDir || 'desc'}
+                currentUserId={currentUserId}
+                currentUserRole={currentUserRole}
+            />
+        </div>
+    )
 }
