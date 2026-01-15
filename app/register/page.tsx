@@ -1,14 +1,13 @@
 'use client'
 
-import { useActionState } from 'react'
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { register } from '@/app/actions/auth'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Button } from '@/components/atoms/button'
+import { Input } from '@/components/atoms/input'
+import { Label } from '@/components/atoms/label'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/molecules/card'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useActionState, useEffect } from 'react'
 
 export default function RegisterPage() {
     const router = useRouter()
@@ -27,9 +26,7 @@ export default function RegisterPage() {
             <Card className="w-full max-w-md">
                 <CardHeader>
                     <CardTitle className="text-2xl">Register</CardTitle>
-                    <CardDescription>
-                        Create an account to start contributing.
-                    </CardDescription>
+                    <CardDescription>Create an account to start contributing.</CardDescription>
                 </CardHeader>
                 <form action={dispatch}>
                     <CardContent className="space-y-4">
@@ -50,17 +47,17 @@ export default function RegisterPage() {
                             <Input id="confirmPassword" name="confirmPassword" type="password" required />
                         </div>
                         {state?.message && (
-                            <div className={state.success ? "text-green-500 text-sm" : "text-red-500 text-sm"}>
+                            <div className={state.success ? 'text-green-500 text-sm' : 'text-red-500 text-sm'}>
                                 {state.message}
                             </div>
                         )}
                     </CardContent>
                     <CardFooter className="flex flex-col gap-4">
                         <Button className="w-full" type="submit" disabled={isPending}>
-                            {isPending ? "Registering..." : "Register"}
+                            {isPending ? 'Registering...' : 'Register'}
                         </Button>
                         <p className="text-sm text-muted-foreground">
-                            Already have an account?{" "}
+                            Already have an account?{' '}
                             <Link href="/login" className="text-primary hover:underline">
                                 Login
                             </Link>

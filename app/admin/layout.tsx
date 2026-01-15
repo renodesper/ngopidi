@@ -1,29 +1,32 @@
-import { auth } from "@/auth"
-import { redirect } from "next/navigation"
-import { AdminSidebar } from "@/components/admin/AdminSidebar"
-import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet"
-import { Menu } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { auth } from '@/auth'
+import { Button } from '@/components/atoms/button'
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from '@/components/molecules/sheet'
+import { AdminSidebar } from '@/components/organisms/AdminSidebar'
+import { Menu } from 'lucide-react'
+import { redirect } from 'next/navigation'
 
-export default async function AdminLayout({
-    children,
-}: {
-    children: React.ReactNode
-}) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
     const session = await auth()
     if (!session) {
-        redirect("/login")
+        redirect('/login')
     }
     // @ts-ignore
-    if (session.user?.role !== "ADMIN") {
-        redirect("/dashboard")
+    if (session.user?.role !== 'ADMIN') {
+        redirect('/dashboard')
     }
 
     return (
         <div className="flex h-screen bg-muted/20">
             {/* Desktop Sidebar */}
             <aside className="hidden lg:flex w-64 border-r bg-card p-6 flex-col">
-                <AdminSidebar userEmail={session.user.email || ""} />
+                <AdminSidebar userEmail={session.user.email || ''} />
             </aside>
 
             <div className="flex-1 flex flex-col min-w-0">
@@ -42,7 +45,7 @@ export default async function AdminLayout({
                                     <SheetDescription>{session.user.email}</SheetDescription>
                                 </SheetHeader>
                                 <div className="mt-4 h-full">
-                                    <AdminSidebar userEmail={session.user.email || ""} isMobile={true} />
+                                    <AdminSidebar userEmail={session.user.email || ''} isMobile={true} />
                                 </div>
                             </SheetContent>
                         </Sheet>
@@ -51,9 +54,7 @@ export default async function AdminLayout({
                 </header>
 
                 <main className="flex-1 overflow-y-auto p-4 lg:p-8">
-                    <div className="max-w-7xl mx-auto">
-                        {children}
-                    </div>
+                    <div className="max-w-7xl mx-auto">{children}</div>
                 </main>
             </div>
         </div>

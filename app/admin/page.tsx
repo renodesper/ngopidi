@@ -1,44 +1,44 @@
-import { prisma } from "@/lib/prisma"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { MapPin, Users, CheckCircle, Clock } from "lucide-react"
-import Link from "next/link"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/molecules/card'
+import { prisma } from '@/lib/prisma'
+import { CheckCircle, Clock, MapPin, Users } from 'lucide-react'
+import Link from 'next/link'
 
 export default async function AdminDashboardPage() {
     const [totalPlaces, pendingPlaces, verifiedPlaces, totalUsers] = await Promise.all([
         prisma.place.count(),
-        prisma.place.count({ where: { status: "PENDING" } }),
-        prisma.place.count({ where: { status: "VERIFIED_ADMIN" } }),
+        prisma.place.count({ where: { status: 'PENDING' } }),
+        prisma.place.count({ where: { status: 'VERIFIED_ADMIN' } }),
         prisma.user.count(),
     ])
 
     const stats = [
         {
-            title: "Total Places",
+            title: 'Total Places',
             value: totalPlaces,
-            description: "All registered places",
+            description: 'All registered places',
             icon: MapPin,
-            href: "/admin/places",
+            href: '/admin/places',
         },
         {
-            title: "Pending Review",
+            title: 'Pending Review',
             value: pendingPlaces,
-            description: "Awaiting verification",
+            description: 'Awaiting verification',
             icon: Clock,
-            href: "/admin/places",
+            href: '/admin/places',
         },
         {
-            title: "Verified",
+            title: 'Verified',
             value: verifiedPlaces,
-            description: "Admin verified places",
+            description: 'Admin verified places',
             icon: CheckCircle,
-            href: "/admin/places",
+            href: '/admin/places',
         },
         {
-            title: "Total Users",
+            title: 'Total Users',
             value: totalUsers,
-            description: "Registered users",
+            description: 'Registered users',
             icon: Users,
-            href: "/admin/users",
+            href: '/admin/users',
         },
     ]
 
@@ -73,23 +73,15 @@ export default async function AdminDashboardPage() {
                         <CardDescription>Common administrative tasks</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2">
-                        <Link
-                            href="/admin/places"
-                            className="block p-3 rounded-lg hover:bg-muted transition-colors"
-                        >
+                        <Link href="/admin/places" className="block p-3 rounded-lg hover:bg-muted transition-colors">
                             <div className="font-medium">Review Pending Places</div>
                             <div className="text-sm text-muted-foreground">
                                 {pendingPlaces} places awaiting approval
                             </div>
                         </Link>
-                        <Link
-                            href="/admin/users"
-                            className="block p-3 rounded-lg hover:bg-muted transition-colors"
-                        >
+                        <Link href="/admin/users" className="block p-3 rounded-lg hover:bg-muted transition-colors">
                             <div className="font-medium">Manage Users</div>
-                            <div className="text-sm text-muted-foreground">
-                                Add, edit, or remove user accounts
-                            </div>
+                            <div className="text-sm text-muted-foreground">Add, edit, or remove user accounts</div>
                         </Link>
                     </CardContent>
                 </Card>
