@@ -1,31 +1,30 @@
 'use client'
 
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Badge } from '@/components/atoms/badge'
+import { Button } from '@/components/atoms/button'
+import { PlaceFacilityBadge } from '@/components/molecules/PlaceFacilityBadge'
+import { PlaceStatCard } from '@/components/molecules/PlaceStatCard'
 import {
-    Wifi,
-    Zap,
-    Music,
-    Users,
+    AlertCircle,
+    Car,
+    CheckCircle2,
     Clock,
-    Navigation,
-    X,
+    Coffee,
     Laptop,
     MessageSquare,
+    Moon,
+    Navigation,
     Phone,
     Thermometer,
-    Car,
+    Users,
+    Wifi,
     Wind,
-    Coffee,
-    CheckCircle2,
-    AlertCircle,
-    Moon
-} from "lucide-react"
-
-import { useEffect, useState, useRef, useCallback } from "react"
+    X,
+    Zap,
+} from 'lucide-react'
 
 interface PlaceDetailsProps {
-    place: any
+    place: any // Typing as any for now to match flexible usage, ideally should share Place interface
     onClose: () => void
 }
 
@@ -37,32 +36,9 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
         return str
             .toLowerCase()
             .split('_')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ')
     }
-
-    const StatCard = ({ icon: Icon, label, value, subValue, onClick }: any) => (
-        <div
-            className={`glass-card p-4 flex flex-col gap-2 ${onClick ? 'cursor-pointer hover:bg-muted/50 transition-colors' : ''}`}
-            onClick={onClick}
-        >
-            <div className="flex items-center gap-2 text-muted-foreground">
-                <Icon className="w-4 h-4" />
-                <span className="text-xs font-medium uppercase tracking-wider">{label}</span>
-            </div>
-            <div className="flex flex-col">
-                <span className={`text-lg font-bold ${onClick ? 'text-primary underline decoration-dotted underline-offset-4' : ''}`}>{value}</span>
-                {subValue && <span className="text-[10px] text-muted-foreground">{subValue}</span>}
-            </div>
-        </div>
-    )
-
-    const FacilityBadge = ({ icon: Icon, label, available }: any) => (
-        <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${available ? 'bg-primary/5 border-primary/20 text-primary' : 'bg-muted/50 border-border/50 text-muted-foreground opacity-50'}`}>
-            <Icon className="w-4 h-4" />
-            <span className="text-xs font-medium">{label}</span>
-        </div>
-    )
 
     return (
         <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 sm:p-6">
@@ -74,11 +50,11 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2 flex-wrap">
-                                {place.status === "VERIFIED_ADMIN" ? (
+                                {place.status === 'VERIFIED_ADMIN' ? (
                                     <Badge className="bg-blue-600 hover:bg-blue-700 text-white border-none rounded-full px-3">
                                         VERIFIED
                                     </Badge>
-                                ) : place.status === "VERIFIED_USER" ? (
+                                ) : place.status === 'VERIFIED_USER' ? (
                                     <Badge className="bg-emerald-600 hover:bg-emerald-700 text-white border-none rounded-full px-3">
                                         VERIFIED
                                     </Badge>
@@ -89,7 +65,7 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                                 )}
                                 {place.price_level > 0 && (
                                     <Badge className="bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-100 border-emerald-200 dark:border-emerald-800 rounded-full px-3 font-semibold tracking-wide">
-                                        {"$".repeat(Math.min(place.price_level, 5))}
+                                        {'$'.repeat(Math.min(place.price_level, 5))}
                                     </Badge>
                                 )}
                                 {place.work_friendly_score && (
@@ -104,7 +80,12 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                                 {place.address}
                             </p>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full hover:bg-muted/50">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={onClose}
+                            className="rounded-full hover:bg-muted/50"
+                        >
                             <X className="w-6 h-6" />
                         </Button>
                     </div>
@@ -112,33 +93,44 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
 
                 {/* Content Section - Scrollable */}
                 <div className="flex-1 overflow-y-auto no-scrollbar p-6 sm:p-8 space-y-8">
-
                     {/* Top Stats Grid */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        <StatCard
+                        <PlaceStatCard
                             icon={Wifi}
                             label="WiFi Speed"
                             value={`${place.wifi_speed || 0} Mbps`}
                             subValue={place.wifi_stability ? `Stability: ${toTitleCase(place.wifi_stability)}` : null}
                         />
-                        <StatCard
+                        <PlaceStatCard
                             icon={Zap}
                             label="Power Outlets"
-                            value={place.power_outlets_available ? "Available" : "Limited"}
-                            subValue={place.power_outlet_density ? `Density: ${toTitleCase(place.power_outlet_density)}` : null}
+                            value={place.power_outlets_available ? 'Available' : 'Limited'}
+                            subValue={
+                                place.power_outlet_density
+                                    ? `Density: ${toTitleCase(place.power_outlet_density)}`
+                                    : null
+                            }
                         />
-                        <StatCard
+                        <PlaceStatCard
                             icon={Users}
                             label="Crowd Level"
-                            value={toTitleCase(place.crowd_level) || "Normal"}
+                            value={toTitleCase(place.crowd_level) || 'Normal'}
                             subValue="Real-time estimate"
                         />
-                        <StatCard
+                        <PlaceStatCard
                             icon={Clock}
                             label="Opening Hours"
-                            value={place.opening_hours || "Check Maps"}
-                            subValue={place.opening_hours ? "Open Now" : null}
-                            onClick={!place.opening_hours ? () => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + " " + place.address)}`, '_blank') : undefined}
+                            value={place.opening_hours || 'Check Maps'}
+                            subValue={place.opening_hours ? 'Open Now' : null}
+                            onClick={
+                                !place.opening_hours
+                                    ? () =>
+                                          window.open(
+                                              `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + place.address)}`,
+                                              '_blank'
+                                          )
+                                    : undefined
+                            }
                         />
                     </div>
 
@@ -146,60 +138,90 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                     <div className="grid sm:grid-cols-3 gap-8">
                         {/* Column 1: Workspace suitability */}
                         <div className="space-y-4">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60 border-b border-border/50 pb-2">Workspace Suitability</h3>
+                            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60 border-b border-border/50 pb-2">
+                                Workspace Suitability
+                            </h3>
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 text-sm">
                                         <Laptop className="w-4 h-4 text-primary" />
                                         Laptop Friendly
                                     </div>
-                                    {place.laptop_friendly ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertCircle className="w-4 h-4 text-muted-foreground" />}
+                                    {place.laptop_friendly ? (
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                    ) : (
+                                        <AlertCircle className="w-4 h-4 text-muted-foreground" />
+                                    )}
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 text-sm">
                                         <MessageSquare className="w-4 h-4 text-primary" />
                                         Meeting Friendly
                                     </div>
-                                    {place.meeting_friendly ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertCircle className="w-4 h-4 text-muted-foreground" />}
+                                    {place.meeting_friendly ? (
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                    ) : (
+                                        <AlertCircle className="w-4 h-4 text-muted-foreground" />
+                                    )}
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 text-sm">
                                         <Phone className="w-4 h-4 text-primary" />
                                         Call Friendly
                                     </div>
-                                    {place.call_friendly ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertCircle className="w-4 h-4 text-muted-foreground" />}
+                                    {place.call_friendly ? (
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                    ) : (
+                                        <AlertCircle className="w-4 h-4 text-muted-foreground" />
+                                    )}
                                 </div>
                             </div>
                         </div>
 
                         {/* Column 2: Environment */}
                         <div className="space-y-4">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60 border-b border-border/50 pb-2">Environment</h3>
+                            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60 border-b border-border/50 pb-2">
+                                Environment
+                            </h3>
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Noise Level</span>
-                                    <span className="font-medium">{toTitleCase(place.noise_level) || "Moderate"}</span>
+                                    <span className="font-medium">{toTitleCase(place.noise_level) || 'Moderate'}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Music Volume</span>
-                                    <span className="font-medium">{toTitleCase(place.music_volume) || "Low"}</span>
+                                    <span className="font-medium">{toTitleCase(place.music_volume) || 'Low'}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Stay Policy</span>
-                                    <span className="font-medium">{toTitleCase(place.stay_policy) || "No Limit"}</span>
+                                    <span className="font-medium">{toTitleCase(place.stay_policy) || 'No Limit'}</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Column 3: Facilities */}
                         <div className="space-y-4">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60 border-b border-border/50 pb-2">Facilities</h3>
+                            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60 border-b border-border/50 pb-2">
+                                Facilities
+                            </h3>
                             <div className="flex flex-wrap gap-2">
-                                <FacilityBadge icon={Wind} label="A/C" available={place.air_conditioning} />
-                                <FacilityBadge icon={Coffee} label="Restroom" available={place.restroom_available} />
-                                <FacilityBadge icon={Car} label="Parking" available={place.parking_available} />
-                                <FacilityBadge icon={Thermometer} label="Outdoor Area" available={place.smoking_area !== 'none'} />
-                                <FacilityBadge icon={Moon} label="Prayer Room" available={place.prayer_room_available} />
+                                <PlaceFacilityBadge icon={Wind} label="A/C" available={place.air_conditioning} />
+                                <PlaceFacilityBadge
+                                    icon={Coffee}
+                                    label="Restroom"
+                                    available={place.restroom_available}
+                                />
+                                <PlaceFacilityBadge icon={Car} label="Parking" available={place.parking_available} />
+                                <PlaceFacilityBadge
+                                    icon={Thermometer}
+                                    label="Outdoor Area"
+                                    available={place.smoking_area !== 'none'}
+                                />
+                                <PlaceFacilityBadge
+                                    icon={Moon}
+                                    label="Prayer Room"
+                                    available={place.prayer_room_available}
+                                />
                             </div>
                         </div>
                     </div>
@@ -207,20 +229,17 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                     {/* Description or Additional Info */}
                     {place.description && (
                         <div className="space-y-4">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60 border-b border-border/50 pb-2">About this spot</h3>
-                            <p className="text-muted-foreground leading-relaxed">
-                                {place.description}
-                            </p>
+                            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60 border-b border-border/50 pb-2">
+                                About this spot
+                            </h3>
+                            <p className="text-muted-foreground leading-relaxed">{place.description}</p>
                         </div>
                     )}
                 </div>
 
                 {/* Footer Actions */}
                 <div className="p-6 sm:p-8 bg-muted/30 border-t border-border/50 flex flex-col sm:flex-row gap-4">
-                    <Button
-                        className="flex-1 h-14 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20"
-                        asChild
-                    >
+                    <Button className="flex-1 h-14 rounded-2xl text-lg font-bold shadow-xl shadow-primary/20" asChild>
                         <a
                             href={`https://www.google.com/maps/dir/?api=1&destination=${place.latitude},${place.longitude}`}
                             target="_blank"

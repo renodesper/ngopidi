@@ -1,13 +1,13 @@
 'use client'
 
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents, ZoomControl } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
-import { useState, useEffect, useRef } from 'react'
-import { Search, MapPin, Loader2, X } from 'lucide-react'
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { Button } from '@/components/atoms/button'
+import { Input } from '@/components/atoms/input'
 import { DEFAULT_LOCATION } from '@/lib/constants'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import { Loader2, MapPin, Search, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { MapContainer, Marker, TileLayer, useMap, useMapEvents, ZoomControl } from 'react-leaflet'
 
 // Fix for default marker icons in Leaflet with Next.js
 const defaultIcon = L.icon({
@@ -43,7 +43,7 @@ interface LocationPickerProps {
 export default function LocationPicker({
     initialLat = DEFAULT_LOCATION[0],
     initialLng = DEFAULT_LOCATION[1],
-    onLocationSelect
+    onLocationSelect,
 }: LocationPickerProps) {
     const [position, setPosition] = useState<[number, number]>([initialLat, initialLng])
     const [searchQuery, setSearchQuery] = useState('')
@@ -66,7 +66,7 @@ export default function LocationPicker({
                     onLocationSelect(lat, lng)
                 },
                 (err) => {
-                    console.error("Error getting location:", err)
+                    console.error('Error getting location:', err)
                     setPosition([initialLat, initialLng])
                 },
                 { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
@@ -97,7 +97,7 @@ export default function LocationPicker({
             const data = await response.json()
             setSearchResults(data)
         } catch (error) {
-            console.error("Search error:", error)
+            console.error('Search error:', error)
         } finally {
             setIsSearching(false)
         }
