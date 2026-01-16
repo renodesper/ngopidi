@@ -22,23 +22,37 @@ async function checkAdmin() {
     return session
 }
 
-export async function submitVerification(placeId: string, proofLink: string) {
+export async function submitVerification(placeId: string, proofLink: string, notes?: string) {
     try {
         const session = await auth()
         if (!session?.user?.id) {
             return { success: false, error: 'Unauthorized' }
         }
 
-        const verification = await prisma.placeVerification.create({
-            data: {
-                place_id: placeId,
-                user_id: session.user.id,
-                proof_link: proofLink,
-                status: PlaceStatus.PENDING,
-            },
-        })
+        // Determine verification status based on user role
+        // @ts-ignore
+        const userRole = session.user.role
+        const verificationStatus = userRole === 'ADMIN' ? PlaceStatus.VERIFIED_ADMIN : PlaceStatus.VERIFIED_USER
+
+        // Create verification record and update place status in a transaction
+        const [verification] = await prisma.$transaction([
+            prisma.placeVerification.create({
+                data: {
+                    place_id: placeId,
+                    user_id: session.user.id,
+                    proof_link: proofLink,
+                    notes: notes,
+                    status: verificationStatus,
+                },
+            }),
+            prisma.place.update({
+                where: { id: placeId },
+                data: { status: verificationStatus },
+            }),
+        ])
 
         revalidatePath('/')
+        revalidatePath('/admin')
         revalidatePath('/dashboard')
         revalidatePath(`/places/${placeId}`)
 
@@ -75,7 +89,7 @@ export async function getVerifications(placeId?: string) {
     }
 }
 
-export async function updateVerificationStatus(verificationId: string, status: PlaceStatus, adminNotes?: string) {
+export async function updateVerificationStatus(verificationId: string, status: PlaceStatus, notes?: string) {
     try {
         await checkAdmin()
 
@@ -84,7 +98,7 @@ export async function updateVerificationStatus(verificationId: string, status: P
                 where: { id: verificationId },
                 data: {
                     status: PlaceStatus.REJECTED,
-                    admin_notes: adminNotes,
+                    notes: notes,
                 },
             })
             revalidatePath('/admin')
@@ -111,7 +125,7 @@ export async function updateVerificationStatus(verificationId: string, status: P
                 where: { id: verificationId },
                 data: {
                     status: newPlaceStatus,
-                    admin_notes: adminNotes,
+                    notes: notes,
                 },
             }),
             prisma.place.update({

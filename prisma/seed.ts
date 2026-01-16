@@ -35,6 +35,7 @@ async function main() {
             name: 'Admin User',
             password: passwordHash,
             role: 'ADMIN',
+            email_verified: new Date(),
         },
     })
     console.log({ admin })
@@ -49,6 +50,7 @@ async function main() {
             name: 'Regular User',
             password: passwordHash2,
             role: 'USER',
+            email_verified: new Date(),
         },
     })
     console.log({ user })

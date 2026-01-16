@@ -24,6 +24,10 @@ export async function authenticate(prevState: string | undefined, formData: Form
         })
     } catch (error) {
         if (error instanceof AuthError) {
+            // Check for email not verified error
+            if (error.cause?.err?.message === 'EMAIL_NOT_VERIFIED') {
+                return 'Please verify your email before logging in. Check your inbox for the verification link.'
+            }
             switch (error.type) {
                 case 'CredentialsSignin':
                     return 'Invalid credentials.'
@@ -69,6 +73,7 @@ export async function register(
     try {
         const { prisma } = await import('@/lib/prisma')
         const bcrypt = await import('bcryptjs')
+        const crypto = await import('crypto')
 
         // Check if user exists
         const existingUser = await prisma.user.findUnique({
@@ -90,7 +95,26 @@ export async function register(
             },
         })
 
-        return { success: true, message: 'Registration successful! Please login.' }
+        // Generate verification token
+        const token = crypto.randomBytes(32).toString('hex')
+        const expires = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
+
+        // Store token in database
+        await prisma.verificationToken.create({
+            data: {
+                identifier: email,
+                token,
+                expires,
+            },
+        })
+
+        // Send verification email (non-blocking)
+        const { sendVerificationEmail } = await import('@/lib/email')
+        sendVerificationEmail(name, email, token).catch((err) => {
+            console.error('Failed to send verification email:', err)
+        })
+
+        return { success: true, message: 'Registration successful! Please check your email to verify your account.' }
     } catch (error) {
         console.error('Registration error:', error)
         return { success: false, message: 'Something went wrong. Please try again.' }

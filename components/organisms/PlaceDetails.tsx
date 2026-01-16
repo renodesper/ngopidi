@@ -68,7 +68,7 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                                         {'$'.repeat(Math.min(place.price_level, 5))}
                                     </Badge>
                                 )}
-                                {place.work_friendly_score && (
+                                {place.work_friendly_score > 0 && (
                                     <Badge className="bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-100 border-amber-200 dark:border-amber-800 rounded-full px-3">
                                         Score: {Number(place.work_friendly_score).toFixed(1)}/5
                                     </Badge>
@@ -121,14 +121,21 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                             icon={Clock}
                             label="Opening Hours"
                             value={place.opening_hours || 'Check Maps'}
-                            subValue={place.opening_hours ? 'Open Now' : null}
+                            subValue={(() => {
+                                if (!place.opening_hours) return null
+                                const now = new Date()
+                                const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+                                const openingTime = place.opening_hours.split(' - ')[0]
+                                const closingTime = place.opening_hours.split(' - ')[1]
+                                return openingTime < currentTime && currentTime < closingTime ? 'Open Now' : "Outside of Working Hours"
+                            })()}
                             onClick={
                                 !place.opening_hours
                                     ? () =>
-                                          window.open(
-                                              `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + place.address)}`,
-                                              '_blank'
-                                          )
+                                        window.open(
+                                            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + place.address)}`,
+                                            '_blank'
+                                        )
                                     : undefined
                             }
                         />
