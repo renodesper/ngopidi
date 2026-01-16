@@ -1,48 +1,21 @@
-'use client'
+import { auth } from '@/auth'
+import { redirect } from 'next/navigation'
+import { LoginForm } from './LoginForm'
 
-import { authenticate } from '@/app/actions/auth'
-import { Button } from '@/components/atoms/button'
-import { Input } from '@/components/atoms/input'
-import { Label } from '@/components/atoms/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/molecules/card'
-import Link from 'next/link'
-import { useActionState } from 'react'
+export default async function LoginPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ verified?: string; message?: string; error?: string }>
+}) {
+    const session = await auth()
 
-export default function LoginPage() {
-    const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined)
+    if (session) {
+        // @ts-ignore
+        const redirectTo = session.user?.role === 'ADMIN' ? '/admin' : '/dashboard'
+        redirect(redirectTo)
+    }
 
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-900">
-            <Card className="w-full max-w-md">
-                <CardHeader>
-                    <CardTitle className="text-2xl">Login</CardTitle>
-                    <CardDescription>Enter your credentials to access the dashboard.</CardDescription>
-                </CardHeader>
-                <form action={dispatch}>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input id="email" name="email" type="email" placeholder="admin@example.com" required />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
-                            <Input id="password" name="password" type="password" placeholder="password" required />
-                        </div>
-                        {errorMessage && <div className="text-red-500 text-sm">{errorMessage}</div>}
-                    </CardContent>
-                    <CardFooter className="flex flex-col gap-4 mt-4">
-                        <Button className="w-full cursor-pointer" type="submit" disabled={isPending}>
-                            {isPending ? 'Logging in...' : 'Login'}
-                        </Button>
-                        <p className="text-sm text-muted-foreground">
-                            Don&apos;t have an account?{' '}
-                            <Link href="/register" className="text-primary hover:underline">
-                                Register
-                            </Link>
-                        </p>
-                    </CardFooter>
-                </form>
-            </Card>
-        </div>
-    )
+    const params = await searchParams
+
+    return <LoginForm verified={params.verified} message={params.message} error={params.error} />
 }
