@@ -988,15 +988,6 @@ export function PlacesTable({
                                 {/* Location */}
                                 <div className="space-y-3">
                                     <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Location</h3>
-                                    <div className="flex items-center gap-4 text-sm mb-3">
-                                        <span className="text-muted-foreground">
-                                            Lat: <span className="font-mono">{selectedPlace.latitude.toFixed(6)}</span>
-                                        </span>
-                                        <span className="text-muted-foreground">
-                                            Lng: <span className="font-mono">{selectedPlace.longitude.toFixed(6)}</span>
-                                        </span>
-                                    </div>
-                                    {/* Mini Map */}
                                     <div className="h-48 rounded-xl overflow-hidden border shadow-sm">
                                         <MapContainer
                                             center={[selectedPlace.latitude, selectedPlace.longitude]}
