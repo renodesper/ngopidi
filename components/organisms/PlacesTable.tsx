@@ -22,11 +22,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/molecules/table'
 import {
     ArrowUpDown,
+    Car,
+    CheckCircle2,
     ChevronDown,
     ChevronUp,
+    Clock,
+    Coffee,
     Filter,
     Info,
+    Laptop,
+    MapPin,
     MoreHorizontal,
+    Navigation,
     Pencil,
     Plus,
     ShieldCheck,
@@ -34,10 +41,22 @@ import {
     SortDesc,
     Sparkles,
     Trash,
+    Users,
+    Volume2,
     Wifi,
+    Wind,
+    XCircle,
+    Zap,
 } from 'lucide-react'
+import type L from 'leaflet'
 import { usePathname, useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
+
+// Dynamically import map components to avoid SSR issues
+const MapContainer = dynamic(() => import('react-leaflet').then((mod) => mod.MapContainer), { ssr: false })
+const TileLayer = dynamic(() => import('react-leaflet').then((mod) => mod.TileLayer), { ssr: false })
+const Marker = dynamic(() => import('react-leaflet').then((mod) => mod.Marker), { ssr: false })
 
 import { createPlace, deletePlace, updatePlace } from '@/app/actions/places'
 import { submitVerification } from '@/app/actions/verifications'
@@ -111,16 +130,53 @@ export function PlacesTable({
     const [editOpen, setEditOpen] = useState(false)
     const [deleteOpen, setDeleteOpen] = useState(false)
     const [verifyOpen, setVerifyOpen] = useState(false)
+    const [detailOpen, setDetailOpen] = useState(false)
     const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState<PlaceFormData>(defaultFormData)
     const [activeTab, setActiveTab] = useState('basic')
     const [searchValue, setSearchValue] = useState(searchQuery) // Local state for input
     const [verifyFormData, setVerifyFormData] = useState({ proofLink: '', notes: '' })
+    const [placeIcon, setPlaceIcon] = useState<L.DivIcon | null>(null)
+
+    // Create Leaflet icon on client side only
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            import('leaflet').then((L) => {
+                const icon = L.divIcon({
+                    html: `<div class="flex items-center justify-center">
+                        <div class="w-8 h-8 bg-primary rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+                            <svg class="w-4 h-4 text-white" fill="white" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                    </div>`,
+                    className: 'custom-place-icon',
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 32],
+                })
+                setPlaceIcon(icon)
+            })
+        }
+    }, [])
 
     const resetForm = () => {
         setFormData(defaultFormData)
         setActiveTab('basic')
+    }
+
+    const toTitleCase = (str: string | null | undefined) => {
+        if (!str) return '—'
+        return str
+            .toLowerCase()
+            .split('_')
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ')
+    }
+
+    const handleRowClick = (place: Place) => {
+        setSelectedPlace(place)
+        setDetailOpen(true)
     }
 
     // URL State Management
@@ -310,42 +366,44 @@ export function PlacesTable({
     }
 
     const PlaceCard = ({ place }: { place: Place }) => (
-        <div className="bg-card border rounded-xl p-4 space-y-3 shadow-sm">
+        <div className="bg-card border rounded-xl p-4 space-y-3 shadow-sm cursor-pointer hover:bg-muted/30 transition-colors" onClick={() => handleRowClick(place)}>
             <div className="flex justify-between items-start">
                 <div>
                     <h3 className="font-bold text-base">{place.name}</h3>
                     <p className="text-xs text-muted-foreground line-clamp-1">{place.address}</p>
                 </div>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        {place.status === 'UNVERIFIED' && (
-                            <DropdownMenuItem onClick={() => handleVerify(place)} className="text-emerald-600">
-                                <ShieldCheck className="mr-2 h-4 w-4" />
-                                Verify
+                <div onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {place.status === 'UNVERIFIED' && (
+                                <DropdownMenuItem onClick={() => handleVerify(place)} className="text-emerald-600">
+                                    <ShieldCheck className="mr-2 h-4 w-4" />
+                                    Verify
+                                </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem
+                                onClick={() => handleEdit(place)}
+                                disabled={currentUserRole !== 'ADMIN' && place.submitter_id !== currentUserId}
+                            >
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
                             </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem
-                            onClick={() => handleEdit(place)}
-                            disabled={currentUserRole !== 'ADMIN' && place.submitter_id !== currentUserId}
-                        >
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={() => handleDelete(place)}
-                            className="text-destructive"
-                            disabled={currentUserRole !== 'ADMIN' && place.submitter_id !== currentUserId}
-                        >
-                            <Trash className="mr-2 h-4 w-4" />
-                            Delete
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                            <DropdownMenuItem
+                                onClick={() => handleDelete(place)}
+                                className="text-destructive"
+                                disabled={currentUserRole !== 'ADMIN' && place.submitter_id !== currentUserId}
+                            >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
             </div>
 
             <div className="flex flex-wrap gap-2 items-center">
@@ -489,9 +547,9 @@ export function PlacesTable({
                             </TableRow>
                         ) : (
                             places.map((place) => (
-                                <TableRow key={place.id} className="group transition-colors">
-                                    <TableCell className="font-medium px-6">{place.name}</TableCell>
-                                    <TableCell className="text-center">
+                                <TableRow key={place.id} className="group transition-colors hover:bg-muted/50 cursor-pointer">
+                                    <TableCell className="font-medium px-6" onClick={() => handleRowClick(place)}>{place.name}</TableCell>
+                                    <TableCell className="text-center" onClick={() => handleRowClick(place)}>
                                         {place.submitter_id === currentUserId ? (
                                             <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
                                                 You
@@ -500,13 +558,13 @@ export function PlacesTable({
                                             <span className="text-muted-foreground/30">—</span>
                                         )}
                                     </TableCell>
-                                    <TableCell className="max-w-[200px] truncate text-muted-foreground">
+                                    <TableCell className="max-w-[200px] truncate text-muted-foreground" onClick={() => handleRowClick(place)}>
                                         {place.address}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell onClick={() => handleRowClick(place)}>
                                         <PlaceStatusBadge status={place.status} />
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell onClick={() => handleRowClick(place)}>
                                         {place.work_friendly_score ? (
                                             <div className="flex items-center gap-1.5 font-semibold text-amber-600">
                                                 {Number(place.work_friendly_score).toFixed(1)}
@@ -515,12 +573,12 @@ export function PlacesTable({
                                             '—'
                                         )}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell onClick={() => handleRowClick(place)}>
                                         <div className="font-semibold text-emerald-600">
                                             {place.price_level ? '$'.repeat(place.price_level) : '—'}
                                         </div>
                                     </TableCell>
-                                    <TableCell className="text-muted-foreground text-xs uppercase tracking-wider font-medium">
+                                    <TableCell className="text-muted-foreground text-xs uppercase tracking-wider font-medium" onClick={() => handleRowClick(place)}>
                                         {place.noise_level?.replace(/_/g, ' ') || '—'}
                                     </TableCell>
                                     <TableCell className="pr-6">
@@ -687,6 +745,298 @@ export function PlacesTable({
                             {loading ? 'Verifying...' : 'Verify Place'}
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Place Detail Modal */}
+            <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+                <DialogContent className="max-w-3xl w-[95vw] max-h-[90vh] overflow-hidden p-0 rounded-2xl">
+                    <DialogTitle className="sr-only">
+                        {selectedPlace?.name || 'Place Details'}
+                    </DialogTitle>
+                    {selectedPlace && (
+                        <>
+                            {/* Header */}
+                            <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-6 pb-4 border-b">
+                                <div className="space-y-3 pr-10">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <PlaceStatusBadge status={selectedPlace.status} />
+                                        {selectedPlace.price_level && (
+                                            <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
+                                                {'$'.repeat(selectedPlace.price_level)}
+                                            </span>
+                                        )}
+                                        {selectedPlace.work_friendly_score && (
+                                            <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 flex items-center gap-1">
+                                                <Sparkles className="h-3 w-3" />
+                                                {Number(selectedPlace.work_friendly_score).toFixed(1)}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <h2 className="text-2xl font-bold tracking-tight">{selectedPlace.name}</h2>
+                                    <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                                        <MapPin className="h-4 w-4 shrink-0" />
+                                        {selectedPlace.address}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Content */}
+                            <div className="overflow-y-auto max-h-[calc(90vh-180px)] p-6 space-y-6">
+                                {/* Quick Stats */}
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <div className="bg-muted/50 rounded-xl p-4 space-y-1">
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <Wifi className="h-4 w-4" />
+                                            <span className="text-xs font-medium">WiFi</span>
+                                        </div>
+                                        <p className="font-semibold">
+                                            {selectedPlace.wifi_available
+                                                ? selectedPlace.wifi_speed
+                                                    ? `${selectedPlace.wifi_speed} Mbps`
+                                                    : 'Available'
+                                                : 'Not Available'}
+                                        </p>
+                                        {selectedPlace.wifi_stability && (
+                                            <p className="text-xs text-muted-foreground">{toTitleCase(selectedPlace.wifi_stability)}</p>
+                                        )}
+                                    </div>
+                                    <div className="bg-muted/50 rounded-xl p-4 space-y-1">
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <Zap className="h-4 w-4" />
+                                            <span className="text-xs font-medium">Power</span>
+                                        </div>
+                                        <p className="font-semibold">
+                                            {selectedPlace.power_outlets_available ? 'Available' : 'Limited'}
+                                        </p>
+                                        {selectedPlace.power_outlet_density && (
+                                            <p className="text-xs text-muted-foreground">{toTitleCase(selectedPlace.power_outlet_density)}</p>
+                                        )}
+                                    </div>
+                                    <div className="bg-muted/50 rounded-xl p-4 space-y-1">
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <Volume2 className="h-4 w-4" />
+                                            <span className="text-xs font-medium">Noise</span>
+                                        </div>
+                                        <p className="font-semibold">{toTitleCase(selectedPlace.noise_level)}</p>
+                                    </div>
+                                    <div className="bg-muted/50 rounded-xl p-4 space-y-1">
+                                        <div className="flex items-center gap-2 text-muted-foreground">
+                                            <Users className="h-4 w-4" />
+                                            <span className="text-xs font-medium">Crowd</span>
+                                        </div>
+                                        <p className="font-semibold">{toTitleCase(selectedPlace.crowd_level)}</p>
+                                    </div>
+                                </div>
+
+                                {/* Workspace & Environment */}
+                                <div className="grid sm:grid-cols-2 gap-6">
+                                    {/* Workspace Suitability */}
+                                    <div className="space-y-3">
+                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                            <Laptop className="h-4 w-4" />
+                                            Workspace
+                                        </h3>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between py-2 border-b border-border/50">
+                                                <span className="text-sm">Laptop Friendly</span>
+                                                {selectedPlace.laptop_friendly ? (
+                                                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                                                ) : (
+                                                    <XCircle className="h-4 w-4 text-muted-foreground/50" />
+                                                )}
+                                            </div>
+                                            <div className="flex items-center justify-between py-2 border-b border-border/50">
+                                                <span className="text-sm">Meeting Friendly</span>
+                                                {selectedPlace.meeting_friendly ? (
+                                                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                                                ) : (
+                                                    <XCircle className="h-4 w-4 text-muted-foreground/50" />
+                                                )}
+                                            </div>
+                                            <div className="flex items-center justify-between py-2 border-b border-border/50">
+                                                <span className="text-sm">Call Friendly</span>
+                                                {selectedPlace.call_friendly ? (
+                                                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                                                ) : (
+                                                    <XCircle className="h-4 w-4 text-muted-foreground/50" />
+                                                )}
+                                            </div>
+                                            <div className="flex items-center justify-between py-2">
+                                                <span className="text-sm">Stay Policy</span>
+                                                <span className="text-sm font-medium">{toTitleCase(selectedPlace.stay_policy)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Environment */}
+                                    <div className="space-y-3">
+                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                            <Coffee className="h-4 w-4" />
+                                            Environment
+                                        </h3>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between py-2 border-b border-border/50">
+                                                <span className="text-sm">Music Volume</span>
+                                                <span className="text-sm font-medium">{toTitleCase(selectedPlace.music_volume)}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between py-2 border-b border-border/50">
+                                                <span className="text-sm">Table Size</span>
+                                                <span className="text-sm font-medium">{toTitleCase(selectedPlace.table_size)}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between py-2 border-b border-border/50">
+                                                <span className="text-sm">Temperature</span>
+                                                <span className="text-sm font-medium">{toTitleCase(selectedPlace.temperature_comfort)}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between py-2">
+                                                <span className="text-sm">Seating Types</span>
+                                                <span className="text-sm font-medium">
+                                                    {selectedPlace.seating_types?.length
+                                                        ? selectedPlace.seating_types.map(toTitleCase).join(', ')
+                                                        : '—'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Facilities */}
+                                <div className="space-y-3">
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Facilities</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${selectedPlace.air_conditioning ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
+                                            <Wind className="h-3.5 w-3.5" />
+                                            A/C
+                                        </span>
+                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${selectedPlace.restroom_available ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
+                                            <Coffee className="h-3.5 w-3.5" />
+                                            Restroom
+                                        </span>
+                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${selectedPlace.parking_available ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
+                                            <Car className="h-3.5 w-3.5" />
+                                            Parking
+                                        </span>
+                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${selectedPlace.smoking_area && selectedPlace.smoking_area !== 'none' ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300' : 'bg-muted text-muted-foreground'}`}>
+                                            <Wind className="h-3.5 w-3.5" />
+                                            Smoking Area
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Pricing & Hours */}
+                                <div className="grid sm:grid-cols-2 gap-6">
+                                    <div className="space-y-3">
+                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                            <Navigation className="h-4 w-4" />
+                                            Pricing
+                                        </h3>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between py-2 border-b border-border/50">
+                                                <span className="text-sm">Avg. Drink Price</span>
+                                                <span className="text-sm font-medium">
+                                                    {selectedPlace.average_drink_price ? `Rp ${selectedPlace.average_drink_price.toLocaleString()}` : '—'}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center justify-between py-2">
+                                                <span className="text-sm">Minimum Spend</span>
+                                                <span className="text-sm font-medium">
+                                                    {selectedPlace.minimum_spend ? `Rp ${selectedPlace.minimum_spend.toLocaleString()}` : '—'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                                            <Clock className="h-4 w-4" />
+                                            Hours
+                                        </h3>
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between py-2 border-b border-border/50">
+                                                <span className="text-sm">Opening Hours</span>
+                                                <span className="text-sm font-medium">{selectedPlace.opening_hours || '—'}</span>
+                                            </div>
+                                            <div className="flex items-center justify-between py-2">
+                                                <span className="text-sm">Busy Hours</span>
+                                                <span className="text-sm font-medium">{selectedPlace.busy_hours || '—'}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Common Visitors */}
+                                {selectedPlace.common_visitors?.length > 0 && (
+                                    <div className="space-y-3">
+                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Common Visitors</h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {selectedPlace.common_visitors.map((visitor: string) => (
+                                                <span key={visitor} className="px-3 py-1.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                                                    {toTitleCase(visitor)}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Description */}
+                                {selectedPlace.description && (
+                                    <div className="space-y-3">
+                                        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Description</h3>
+                                        <p className="text-sm text-muted-foreground leading-relaxed">{selectedPlace.description}</p>
+                                    </div>
+                                )}
+
+                                {/* Location */}
+                                <div className="space-y-3">
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Location</h3>
+                                    <div className="flex items-center gap-4 text-sm mb-3">
+                                        <span className="text-muted-foreground">
+                                            Lat: <span className="font-mono">{selectedPlace.latitude.toFixed(6)}</span>
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                            Lng: <span className="font-mono">{selectedPlace.longitude.toFixed(6)}</span>
+                                        </span>
+                                    </div>
+                                    {/* Mini Map */}
+                                    <div className="h-48 rounded-xl overflow-hidden border shadow-sm">
+                                        <MapContainer
+                                            center={[selectedPlace.latitude, selectedPlace.longitude]}
+                                            zoom={15}
+                                            scrollWheelZoom={false}
+                                            dragging={false}
+                                            zoomControl={false}
+                                            attributionControl={false}
+                                            className="h-full w-full"
+                                            key={`${selectedPlace.latitude}-${selectedPlace.longitude}`}
+                                        >
+                                            <TileLayer
+                                                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                                            />
+                                            {placeIcon && (
+                                                <Marker
+                                                    position={[selectedPlace.latitude, selectedPlace.longitude]}
+                                                    icon={placeIcon}
+                                                />
+                                            )}
+                                        </MapContainer>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-4 border-t bg-muted/30">
+                                <Button className="w-full" asChild>
+                                    <a
+                                        href={`https://www.google.com/maps/dir/?api=1&destination=${selectedPlace.latitude},${selectedPlace.longitude}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <Navigation className="h-4 w-4 mr-2" />
+                                        Get Directions
+                                    </a>
+                                </Button>
+                            </div>
+                        </>
+                    )}
                 </DialogContent>
             </Dialog>
 
