@@ -7,7 +7,7 @@ export default async function AdminDashboardPage() {
     const [totalPlaces, pendingPlaces, verifiedPlaces, totalUsers] = await Promise.all([
         prisma.place.count(),
         prisma.place.count({ where: { status: 'PENDING' } }),
-        prisma.place.count({ where: { status: 'VERIFIED_ADMIN' } }),
+        prisma.place.count({ where: { OR: [{ status: 'VERIFIED_USER' }, { status: 'VERIFIED_ADMIN' }] } }),
         prisma.user.count(),
     ])
 

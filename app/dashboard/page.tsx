@@ -5,15 +5,10 @@ import { CheckCircle, Clock, MapPin, Users } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function DashboardPage() {
-    const session = await auth()
-    // @ts-ignore
-    const isAdmin = session?.user?.role === 'ADMIN'
-
-    const [totalPlaces, pendingPlaces, verifiedPlaces, totalUsers] = await Promise.all([
+    const [totalPlaces, pendingPlaces, verifiedPlaces] = await Promise.all([
         prisma.place.count(),
         prisma.place.count({ where: { status: 'PENDING' } }),
-        prisma.place.count({ where: { status: 'VERIFIED_ADMIN' } }),
-        isAdmin ? prisma.user.count() : Promise.resolve(0),
+        prisma.place.count({ where: { OR: [{ status: 'VERIFIED_USER' }, { status: 'VERIFIED_ADMIN' }] } }),
     ])
 
     const stats = [
@@ -38,17 +33,6 @@ export default async function DashboardPage() {
             icon: CheckCircle,
             href: '/dashboard/places',
         },
-        ...(isAdmin
-            ? [
-                  {
-                      title: 'Total Users',
-                      value: totalUsers,
-                      description: 'Registered users',
-                      icon: Users,
-                      href: '/dashboard/users',
-                  },
-              ]
-            : []),
     ]
 
     return (
@@ -91,15 +75,6 @@ export default async function DashboardPage() {
                                 {pendingPlaces} places awaiting approval
                             </div>
                         </Link>
-                        {isAdmin && (
-                            <Link
-                                href="/dashboard/users"
-                                className="block p-3 rounded-lg hover:bg-muted transition-colors"
-                            >
-                                <div className="font-medium">Manage Users</div>
-                                <div className="text-sm text-muted-foreground">Add, edit, or remove user accounts</div>
-                            </Link>
-                        )}
                     </CardContent>
                 </Card>
             </div>

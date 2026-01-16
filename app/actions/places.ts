@@ -13,7 +13,7 @@ export async function submitPlace(data: Prisma.PlaceCreateInput) {
         const place = await prisma.place.create({
             data: {
                 ...data,
-                status: PlaceStatus.PENDING,
+                status: PlaceStatus.UNVERIFIED,
                 submitter: userId ? { connect: { id: userId } } : undefined,
             },
         })
@@ -269,7 +269,7 @@ export async function createPlace(data: PlaceFormData) {
                 description: data.description,
                 latitude: data.latitude,
                 longitude: data.longitude,
-                status: isAdmin ? (data.status ?? PlaceStatus.PENDING) : PlaceStatus.PENDING,
+                status: isAdmin ? (data.status ?? PlaceStatus.UNVERIFIED) : PlaceStatus.UNVERIFIED,
                 submitter: userId ? { connect: { id: userId } } : undefined,
 
                 price_level: data.price_level,
