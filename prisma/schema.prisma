@@ -105,7 +105,6 @@ model Place {
   status                  PlaceStatus               @default(PENDING)
   created_at              DateTime                  @default(now()) @map("created_at")
   updated_at              DateTime                  @updatedAt @map("updated_at")
-  images                  PlaceImage[]
   verifications           PlaceVerification[]
 
   @@index([status])
@@ -119,24 +118,13 @@ model Place {
   @@map("places")
 }
 
-model PlaceImage {
-  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  url        String
-  place_id   String   @db.Uuid
-  created_at DateTime @default(now()) @map("created_at")
-  place      Place    @relation(fields: [place_id], references: [id], onDelete: Cascade)
-
-  @@index([place_id])
-  @@map("place_images")
-}
-
 model PlaceVerification {
   id                String             @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   place_id          String             @db.Uuid
   user_id           String             @db.Uuid
   proof_link        String
   status            PlaceStatus        @default(PENDING)
-  admin_notes       String?
+  notes             String?
   created_at        DateTime           @default(now()) @map("created_at")
   updated_at        DateTime           @updatedAt @map("updated_at")
   

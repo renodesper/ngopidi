@@ -29,6 +29,7 @@ import {
     MoreHorizontal,
     Pencil,
     Plus,
+    ShieldCheck,
     SortAsc,
     SortDesc,
     Sparkles,
@@ -39,6 +40,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 import { createPlace, deletePlace, updatePlace } from '@/app/actions/places'
+import { submitVerification } from '@/app/actions/verifications'
 import { PlaceStatusBadge } from '@/components/molecules/PlaceStatusBadge'
 import { defaultFormData, PlaceForm, PlaceFormData } from '@/components/organisms/PlaceForm'
 import { PlaceStatus } from '@prisma/client'
@@ -108,11 +110,13 @@ export function PlacesTable({
     const [createOpen, setCreateOpen] = useState(false)
     const [editOpen, setEditOpen] = useState(false)
     const [deleteOpen, setDeleteOpen] = useState(false)
+    const [verifyOpen, setVerifyOpen] = useState(false)
     const [selectedPlace, setSelectedPlace] = useState<Place | null>(null)
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState<PlaceFormData>(defaultFormData)
     const [activeTab, setActiveTab] = useState('basic')
     const [searchValue, setSearchValue] = useState(searchQuery) // Local state for input
+    const [verifyFormData, setVerifyFormData] = useState({ proofLink: '', notes: '' })
 
     const resetForm = () => {
         setFormData(defaultFormData)
@@ -221,6 +225,28 @@ export function PlacesTable({
         setDeleteOpen(false)
     }
 
+    const handleVerify = (place: Place) => {
+        setSelectedPlace(place)
+        setVerifyFormData({ proofLink: '', notes: '' })
+        setVerifyOpen(true)
+    }
+
+    const confirmVerify = async () => {
+        if (!selectedPlace) return
+        if (!verifyFormData.proofLink) {
+            alert('Proof link is required')
+            return
+        }
+        setLoading(true)
+        const result = await submitVerification(selectedPlace.id, verifyFormData.proofLink, verifyFormData.notes)
+        setLoading(false)
+        if (result.success) {
+            setVerifyOpen(false)
+        } else {
+            alert(result.error || 'Failed to verify place')
+        }
+    }
+
     const buildPayload = (): any => ({
         name: formData.name,
         address: formData.address,
@@ -297,6 +323,12 @@ export function PlacesTable({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                        {place.status === 'UNVERIFIED' && (
+                            <DropdownMenuItem onClick={() => handleVerify(place)} className="text-emerald-600">
+                                <ShieldCheck className="mr-2 h-4 w-4" />
+                                Verify
+                            </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem
                             onClick={() => handleEdit(place)}
                             disabled={currentUserRole !== 'ADMIN' && place.submitter_id !== currentUserId}
@@ -365,6 +397,7 @@ export function PlacesTable({
                             <SelectContent>
                                 <SelectItem value="ALL">All Status</SelectItem>
                                 <SelectItem value="PENDING">Pending</SelectItem>
+                                <SelectItem value="UNVERIFIED">Unverified</SelectItem>
                                 <SelectItem value="VERIFIED_ADMIN">Verified Admin</SelectItem>
                                 <SelectItem value="VERIFIED_USER">Verified User</SelectItem>
                                 <SelectItem value="REJECTED">Rejected</SelectItem>
@@ -413,7 +446,7 @@ export function PlacesTable({
                             >
                                 <div className="flex items-center gap-2">Name {getSortIcon('name')}</div>
                             </TableHead>
-                            <TableHead className="font-semibold w-[100px] text-center">Source</TableHead>
+                            <TableHead className="font-semibold w-[100px] text-center">Submitter</TableHead>
                             <TableHead className="font-semibold">Address</TableHead>
                             <TableHead
                                 className="font-semibold cursor-pointer hover:text-primary transition-colors"
@@ -502,6 +535,15 @@ export function PlacesTable({
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
+                                                {place.status === 'UNVERIFIED' && (
+                                                    <DropdownMenuItem
+                                                        onClick={() => handleVerify(place)}
+                                                        className="text-emerald-600"
+                                                    >
+                                                        <ShieldCheck className="mr-2 h-4 w-4" />
+                                                        Verify
+                                                    </DropdownMenuItem>
+                                                )}
                                                 <DropdownMenuItem
                                                     onClick={() => handleEdit(place)}
                                                     disabled={
@@ -589,6 +631,60 @@ export function PlacesTable({
                         </Button>
                         <Button variant="destructive" onClick={confirmDelete} disabled={loading}>
                             {loading ? 'Deleting...' : 'Delete'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Verify Dialog */}
+            <Dialog open={verifyOpen} onOpenChange={setVerifyOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Verify Place</DialogTitle>
+                        <DialogDescription>
+                            Verify "{selectedPlace?.name}" by providing proof of verification.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <label htmlFor="proofLink" className="text-sm font-medium">
+                                Proof Link <span className="text-destructive">*</span>
+                            </label>
+                            <Input
+                                id="proofLink"
+                                placeholder="https://example.com/proof"
+                                value={verifyFormData.proofLink}
+                                onChange={(e) =>
+                                    setVerifyFormData((prev) => ({ ...prev, proofLink: e.target.value }))
+                                }
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Link to Google Maps, social media, or official website
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <label htmlFor="notes" className="text-sm font-medium">
+                                Notes
+                            </label>
+                            <textarea
+                                id="notes"
+                                placeholder="Additional notes about verification..."
+                                className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                value={verifyFormData.notes}
+                                onChange={(e) => setVerifyFormData((prev) => ({ ...prev, notes: e.target.value }))}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="ghost" onClick={() => setVerifyOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={confirmVerify}
+                            disabled={loading || !verifyFormData.proofLink}
+                            className="bg-emerald-600 hover:bg-emerald-700"
+                        >
+                            {loading ? 'Verifying...' : 'Verify Place'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
