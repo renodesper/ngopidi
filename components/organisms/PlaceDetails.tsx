@@ -98,23 +98,19 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                         <PlaceStatCard
                             icon={Wifi}
                             label="WiFi Speed"
-                            value={`${place.wifi_speed || 0} Mbps`}
+                            value={place.wifi_speed !== null ? `${place.wifi_speed} Mbps` : '-'}
                             subValue={place.wifi_stability ? `Stability: ${toTitleCase(place.wifi_stability)}` : null}
                         />
                         <PlaceStatCard
                             icon={Zap}
                             label="Power Outlets"
                             value={place.power_outlets_available ? 'Available' : 'Limited'}
-                            subValue={
-                                place.power_outlet_density
-                                    ? `Density: ${toTitleCase(place.power_outlet_density)}`
-                                    : null
-                            }
+                            subValue={`Density: ${place.power_outlet_density ? toTitleCase(place.power_outlet_density) : '-'}`}
                         />
                         <PlaceStatCard
                             icon={Users}
                             label="Crowd Level"
-                            value={toTitleCase(place.crowd_level) || 'Normal'}
+                            value={place.crowd_level ? toTitleCase(place.crowd_level) : '-'}
                             subValue="Real-time estimate"
                         />
                         <PlaceStatCard
@@ -193,15 +189,15 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Noise Level</span>
-                                    <span className="font-medium">{toTitleCase(place.noise_level) || 'Moderate'}</span>
+                                    <span className="font-medium">{place.noise_level ? toTitleCase(place.noise_level) : '-'}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Music Volume</span>
-                                    <span className="font-medium">{toTitleCase(place.music_volume) || 'Low'}</span>
+                                    <span className="font-medium">{place.music_volume ? toTitleCase(place.music_volume) : '-'}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-muted-foreground">Stay Policy</span>
-                                    <span className="font-medium">{toTitleCase(place.stay_policy) || 'No Limit'}</span>
+                                    <span className="font-medium">{place.stay_policy ? toTitleCase(place.stay_policy) : '-'}</span>
                                 </div>
                             </div>
                         </div>
@@ -222,7 +218,7 @@ export default function PlaceDetails({ place, onClose }: PlaceDetailsProps) {
                                 <PlaceFacilityBadge
                                     icon={Thermometer}
                                     label="Outdoor Area"
-                                    available={place.smoking_area !== 'none'}
+                                    available={!!place.smoking_area && place.smoking_area !== 'none'}
                                 />
                                 <PlaceFacilityBadge
                                     icon={Moon}
